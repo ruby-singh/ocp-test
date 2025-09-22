@@ -310,8 +310,8 @@ sudo systemctl restart httpd
 curl -s http://$(hostname -I | awk '{print $1}')/bootstrap.ign | head -5  # hostname will replace by webserver try from another machine
 ```
 
-## <span style="background-color: yellow; padding: 2px;">STEP 12: Install Operating System on Servers</span>
-**What this does:** Installs Red Hat CoreOS on all your physical servers. Once we boot the live iso it need to configure the ip address(Check with support Team)
+## <span style="background-color: yellow; padding: 2px;">STEP 12: Install Operating System on Servers - Once we boot the live iso it need to configure the ip address(Check with support Team) </span>
+**What this does:** Installs Red Hat CoreOS on all your physical servers. 
 
 For each server, boot from the RHCOS ISO and run:
 
