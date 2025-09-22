@@ -141,8 +141,7 @@ log-facility=/var/log/dnsmasq.log
 
 ```
 
-## STEP 7: Fill Your App Store (Copy OpenShift Software)
-## <span style="background-color: yellow; padding: 2px;">STEP 6: Fill Your App Store (Copy OpenShift Software) - Ignore if registry setup already done and we have clone for ocp 4.17</span>
+## <span style="background-color: yellow; padding: 2px;">STEP 7: Fill Your App Store (Copy OpenShift Software) - Ignore if registry setup already done and we have clone for ocp 4.17</span>
 **What this does:** Downloads all OpenShift software and puts it in your local registry
 
 Get your Red Hat credentials first:
