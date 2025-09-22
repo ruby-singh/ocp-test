@@ -30,7 +30,7 @@ wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.17.0/openshift-
 wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/4.17.0/oc-mirror.tar.gz
 
 # Download operating system
-## <mark>Use OS not RHEL- Once we boot the live iso it need to configure the ip address.</mark>
+## **⚠️ Use OS not RHEL- Once we boot the live iso it need to configure the ip address**
 wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.17/4.17.0/rhcos-4.17.0-x86_64-live.x86_64.iso
 
 # Package everything
@@ -62,7 +62,7 @@ openshift-install version
 
 ## STEP 4: Create Your Local App Store (Container Registry)
 
-## <mark>STEP 4: Create Your Local App Store (Container Registry) - Ask the team for the root certificate for the container registry and the exact path where they clone this 4.17 release image.</mark>
+## **⚠️ STEP 4: Create Your Local App Store (Container Registry) - Ask the team for the root certificate for the container registry and the exact path where they clone this 4.17 release image**
 **What this does:** Creates a local place to store OpenShift software since your cluster can't reach the internet
 
 Run these commands on bastion:
@@ -105,7 +105,7 @@ sudo cp /opt/registry/certs/registry.crt /etc/pki/ca-trust/source/anchors/
 sudo update-ca-trust extract
 ```
 
-## <mark>STEP 5: Create Phone Book (DNS Setup) - This is for DNS Team</mark>
+## **⚠️ STEP 5: Create Phone Book (DNS Setup) - This is for DNS Team**
 **What this does:** Sets up name resolution so computers can find each other by name
 
 Run these commands on bastion (replace IP addresses with your actual ones):
@@ -120,21 +120,20 @@ expand-hosts
 no-resolv
 no-poll
 # Your server addresses (CHANGE THESE TO MATCH YOUR NETWORK)
-<pre>
-<mark>address=registry.example.com/192.168.1.100</mark>
-<mark>address=api.eiab.us.eclub.com/192.168.1.101</mark>
-<mark>address=api-int.eiab.us.eclub.com/192.168.1.101</mark>
-<mark>address=*.apps.eiab.us.eclub.com/192.168.1.102</mark>
-<mark>address=master1.us.eclub.com/192.168.1.102</mark>
-<mark>address=master2.us.eclub.com/192.168.1.102</mark>
-<mark>address=master3.us.eclub.com/192.168.1.102</mark>
-<mark>address=worker1.us.eclub.com/192.168.1.102</mark>
-<mark>address=worker2.us.eclub.com/192.168.1.102</mark>
-<mark>address=worker3.us.eclub.com/192.168.1.102</mark>
-<mark>address=worker4.us.eclub.com/192.168.1.102</mark>
-<mark>address=worker5.us.eclub.com/192.168.1.102</mark>
-<mark>address=infra1.us.eclub.com/192.168.1.102</mark>
-</pre>
+# ⚠️ IMPORTANT: Update these addresses with your actual IP addresses
+address=registry.example.com/192.168.1.100    # <- UPDATE THIS IP
+address=api.eiab.us.eclub.com/192.168.1.101   # <- UPDATE THIS IP
+address=api-int.eiab.us.eclub.com/192.168.1.101  # <- UPDATE THIS IP
+address=*.apps.eiab.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=master1.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=master2.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=master3.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=worker1.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=worker2.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=worker3.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=worker4.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=worker5.us.eclub.com/192.168.1.102    # <- UPDATE THIS IP
+address=infra1.us.eclub.com/192.168.1.102     # <- UPDATE THIS IP
 
 cache-size=1000
 log-queries
@@ -143,7 +142,7 @@ log-facility=/var/log/dnsmasq.log
 ```
 
 ## STEP 6: Fill Your App Store (Copy OpenShift Software)
-## <mark>STEP 6: Fill Your App Store (Copy OpenShift Software) - Ignore if  registry setup already done and we have clone for ocp 4.17</mark>
+## **⚠️ STEP 6: Fill Your App Store (Copy OpenShift Software) - Ignore if registry setup already done and we have clone for ocp 4.17**
 **What this does:** Downloads all OpenShift software and puts it in your local registry
 
 Get your Red Hat credentials first:
@@ -211,7 +210,7 @@ ssh-add ~/.ssh/openshift-key
 cat ~/.ssh/openshift-key.pub
 ```
 
-## <mark>STEP 8: Write Your Cluster Plan - Check with Team for registry url and the path under imageContentSources</mark>
+## **⚠️ STEP 8: Write Your Cluster Plan - Check with Team for registry url and the path under imageContentSources**
 
 **What this does:** Creates the blueprint for your OpenShift cluster
 
