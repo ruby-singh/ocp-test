@@ -60,8 +60,6 @@ oc version --client
 openshift-install version
 ```
 
-## STEP 4: Create Your Local App Store (Container Registry)
-
 ## <span style="background-color: yellow; padding: 2px;">STEP 4: Create Your Local App Store (Container Registry) - Ask the team for the root certificate for the container registry and the exact path where they clone this 4.17 release image</span>
 **What this does:** Creates a local place to store OpenShift software since your cluster can't reach the internet
 
@@ -104,9 +102,11 @@ sudo systemctl enable container-local-registry.service
 sudo cp /opt/registry/certs/registry.crt /etc/pki/ca-trust/source/anchors/
 sudo update-ca-trust extract
 ```
+## <span style="background-color: yellow; padding: 2px;">STEP 5: Load Balancer Setup - This is for Load Balancer Team</span>
+**What this does:** Gets the load balancer setup for nodes. Get the ip from the team to update in the address mentioned in below step.
 
-## <span style="background-color: yellow; padding: 2px;">STEP 5: Create Phone Book (DNS Setup) - This is for DNS Team</span>
-**What this does:** Sets up name resolution so computers can find each other by name
+## <span style="background-color: yellow; padding: 2px;">STEP 6: Create Phone Book (DNS Setup) - This is for DNS Team</span>
+**What this does:** Sets up name resolution so computers can find each other by name.Take the Ip address from Step 5 and update for the address (will be done DNS Team)
 
 Run these commands on bastion (replace IP addresses with your actual ones):
 
@@ -132,7 +132,7 @@ no-poll
 <span style="background-color: yellow;">address=worker2.us.eclub.com/192.168.1.102</span>
 <span style="background-color: yellow;">address=worker3.us.eclub.com/192.168.1.102</span>
 <span style="background-color: yellow;">address=worker4.us.eclub.com/192.168.1.102</span>
-<span style="background-color: yellow;">address=worker5.us.eclub.com/192.168.1.102</span>
+<span style="background-color: yellow;">address=worker5.imageContentSourcesus.eclub.com/192.168.1.102</span>
 <span style="background-color: yellow;">address=infra1.us.eclub.com/192.168.1.102</span>
 
 cache-size=1000
@@ -141,7 +141,7 @@ log-facility=/var/log/dnsmasq.log
 
 ```
 
-## STEP 6: Fill Your App Store (Copy OpenShift Software)
+## STEP 7: Fill Your App Store (Copy OpenShift Software)
 ## <span style="background-color: yellow; padding: 2px;">STEP 6: Fill Your App Store (Copy OpenShift Software) - Ignore if registry setup already done and we have clone for ocp 4.17</span>
 **What this does:** Downloads all OpenShift software and puts it in your local registry
 
@@ -194,7 +194,7 @@ docker://registry.example.com:5000 \
 --continue-on-error
 ```
 
-## STEP 7: Create Door Keys (SSH Keys)
+## STEP 8: Create Door Keys (SSH Keys)
 **What this does:** Creates keys so you can log into your servers if needed
 
 Run these commands on bastion:
@@ -210,7 +210,7 @@ ssh-add ~/.ssh/openshift-key
 cat ~/.ssh/openshift-key.pub
 ```
 
-## <span style="background-color: yellow; padding: 2px;">STEP 8: Write Your Cluster Plan - Check with Team for registry url and the path under imageContentSources</span>
+## <span style="background-color: yellow; padding: 2px;">STEP 9: Write Your Cluster Plan - Check with Team for registry url and the path under imageContentSources</span>
 
 **What this does:** Creates the blueprint for your OpenShift cluster
 
@@ -259,7 +259,7 @@ EOF
 cp install-config.yaml install-config.yaml.backup
 ```
 
-## STEP 9: Create Detailed Instructions
+## STEP 10: Create Detailed Instructions
 **What this does:** Turns your plan into specific instructions for each server
 
 Run these commands on bastion:
@@ -281,7 +281,7 @@ ls -la *.ign
 # worker.ign - instructions for worker servers
 ```
 
-## STEP 10: Set Up Instruction Delivery
+## STEP 11: Set Up Instruction Delivery
 **What this does:** Creates a web server to deliver instructions to the bootstrap server
 
 Run these commands on bastion:
@@ -311,8 +311,8 @@ sudo systemctl restart httpd
 curl -s http://$(hostname -I | awk '{print $1}')/bootstrap.ign | head -5  # hostname will replace by webserver try from another machine
 ```
 
-## STEP 11: Install Operating System on Servers
-**What this does:** Installs Red Hat CoreOS on all your physical servers
+## <span style="background-color: yellow; padding: 2px;">STEP 12: Install Operating System on Servers</span>
+**What this does:** Installs Red Hat CoreOS on all your physical servers. Once we boot the live iso it need to configure the ip address(Check with support Team)
 
 For each server, boot from the RHCOS ISO and run:
 
@@ -340,7 +340,7 @@ sudo coreos-installer install \
 ```
 ** Reboot all the nodes: Start by bootstrap then masters and workers**
 
-## STEP 12: Watch Your Cluster Build Itself
+## STEP 13: Watch Your Cluster Build Itself
 **What this does:** Monitors the automatic installation process
 
 Run these commands on bastion:
@@ -356,7 +356,7 @@ openshift-install wait-for bootstrap-complete --log-level=debug
 tail -f .openshift_install.log
 ```
 
-## STEP 13: Let Workers Join the Team
+## STEP 14: Let Workers Join the Team
 **What this does:** Gives permission for worker servers to join your cluster
 
 Run these commands on bastion:
@@ -371,7 +371,7 @@ oc get csr -o name | xargs oc adm certificate approve
 watch 'oc get csr | grep Pending'
 ```
 
-## STEP 14: Wait for Everything to Finish
+## STEP 15: Wait for Everything to Finish
 **What this does:** Waits for all cluster services to start properly
 
 Run these commands on bastion:
@@ -384,7 +384,7 @@ oc get nodes
 oc get clusteroperators
 ```
 
-## STEP 15: Set Up Internal Storage -- Not Needed 
+## STEP 16: Set Up Internal Storage -- Not Needed 
 **What this does:** Configures OpenShift's internal image storage
 
 Run these commands on bastion:
@@ -398,7 +398,7 @@ oc patch configs.imageregistry.operator.openshift.io cluster \
 --type merge --patch '{"spec":{"managementState":"Managed"}}'
 ```
 
-## STEP 16: Test Everything Works
+## STEP 17: Test Everything Works
 **What this does:** Verifies your cluster is healthy and ready to use
 
 Run these commands on bastion:
