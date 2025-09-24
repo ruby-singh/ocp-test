@@ -1,375 +1,342 @@
-# MetalLB Installation Guide
-
-This guide provides step-by-step instructions for installing MetalLB, a bare metal load-balancer for Kubernetes.
+# MetalLB Load Balancing Configuration Guide for OpenShift 4.17
 
 ## Prerequisites
 
-Before installing MetalLB, ensure you:
-- Meet all [requirements](https://metallb.universe.tf/#requirements)
-- Check [network addon compatibility](https://metallb.universe.tf/installation/network-addons/)
-- Review [cloud compatibility](https://metallb.universe.tf/installation/clouds/) if running on a cloud platform
+1. OpenShift Container Platform 4.17 cluster installed
+2. OpenShift CLI (`oc`) installed
+3. User with `cluster-admin` privileges
+4. MetalLB Operator installed (refer to networking operators documentation)
+5. Network configured to route traffic from clients to the cluster host network
 
-## Step 1: Prepare kube-proxy (Required for IPVS mode)
+## Step 1: Install MetalLB Operator
 
-If you're using kube-proxy in IPVS mode (Kubernetes v1.14.2+), you must enable strict ARP mode.
+Before configuring MetalLB, ensure the MetalLB Operator is installed in your cluster. The operator should be deployed in the `metallb-system` namespace.
 
-### Option A: Manual Edit
+## Step 2: Create IP Address Pool
 
-Edit the kube-proxy configmap:
+Create an IP address pool that MetalLB will use to assign IP addresses to LoadBalancer services.
 
-```bash
-kubectl edit configmap -n kube-system kube-proxy
-```
-
-Add or update the following configuration:
-
-```yaml
-apiVersion: kubeproxy.config.k8s.io/v1alpha1
-kind: KubeProxyConfiguration
-mode: "ipvs"
-ipvs:
-  strictARP: true
-```
-
-### Option B: Automated Update
-
-Check what changes would be made:
-
-```bash
-kubectl get configmap kube-proxy -n kube-system -o yaml | \
-sed -e "s/strictARP: false/strictARP: true/" | \
-kubectl diff -f - -n kube-system
-```
-
-Apply the changes:
-
-```bash
-kubectl get configmap kube-proxy -n kube-system -o yaml | \
-sed -e "s/strictARP: false/strictARP: true/" | \
-kubectl apply -f - -n kube-system
-```
-
-## Step 2: Choose Your Installation Method
-
-MetalLB supports three installation methods:
-1. Kubernetes Manifests (simplest)
-2. Kustomize (flexible)
-3. Helm (most features)
-
----
-
-## Method 1: Installation by Manifest
-
-### Standard Installation (Native BGP)
-
-Deploy MetalLB with native BGP implementation:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native.yaml
-```
-
-### FRR Mode Installation
-
-For FRR mode with BFD support:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-frr.yaml
-```
-
-### Experimental FRR-K8s Mode
-
-For experimental FRR-K8s mode:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-frr-k8s.yaml
-```
-
-### With Prometheus Integration
-
-For native BGP with Prometheus:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.15.2/config/manifests/metallb-native-prometheus.yaml
-```
-
----
-
-## Method 2: Installation with Kustomize
-
-### Step 1: Create kustomization.yml
-
-For native BGP implementation:
-
-```yaml
-# kustomization.yml
-namespace: metallb-system
-
-resources:
-  - github.com/metallb/metallb/config/native?ref=v0.15.2
-```
-
-For FRR mode:
-
-```yaml
-# kustomization.yml
-namespace: metallb-system
-
-resources:
-  - github.com/metallb/metallb/config/frr?ref=v0.15.2
-```
-
-For experimental FRR-K8s mode:
-
-```yaml
-# kustomization.yml
-namespace: metallb-system
-
-resources:
-  - github.com/metallb/metallb/config/frr-k8s?ref=main
-```
-
-### Step 2: Apply with Kustomize
-
-```bash
-kubectl apply -k .
-```
-
----
-
-## Method 3: Installation with Helm
-
-### Step 1: Add Helm Repository
-
-```bash
-helm repo add metallb https://metallb.github.io/metallb
-```
-
-### Step 2: Update Helm Repositories
-
-```bash
-helm repo update
-```
-
-### Step 3: Install MetalLB
-
-Basic installation:
-
-```bash
-helm install metallb metallb/metallb
-```
-
-Installation with custom values file:
-
-```bash
-helm install metallb metallb/metallb -f values.yaml
-```
-
-### Step 4: Configure for FRR Mode (Optional)
-
-Create a `values.yaml` file for FRR mode:
-
-```yaml
-speaker:
-  frr:
-    enabled: true
-```
-
-For experimental FRR-K8s mode:
-
-```yaml
-frrk8s:
-  enabled: true
-```
-
-Then install with:
-
-```bash
-helm install metallb metallb/metallb -f values.yaml
-```
-
----
-
-## Step 3: Pod Security Configuration (Kubernetes 1.23+)
-
-For Kubernetes versions with pod security admission, label the metallb-system namespace:
-
-```bash
-kubectl label namespace metallb-system \
-  pod-security.kubernetes.io/enforce=privileged \
-  pod-security.kubernetes.io/audit=privileged \
-  pod-security.kubernetes.io/warn=privileged
-```
-
----
-
-## Step 4: Verify Installation
-
-Check that all MetalLB components are running:
-
-```bash
-kubectl get pods -n metallb-system
-```
-
-Expected output should show:
-- `controller` deployment pod(s) running
-- `speaker` daemonset pods running on each node
-
-Check the deployed resources:
-
-```bash
-kubectl get all -n metallb-system
-```
-
----
-
-## Using MetalLB Operator (Alternative)
-
-### Step 1: Install from OperatorHub
-
-Visit [operatorhub.io/operator/metallb-operator](https://operatorhub.io/operator/metallb-operator) and follow the installation instructions for your cluster.
-
-### Step 2: Configure BGP Type (Optional)
-
-For FRR mode, edit the ClusterServiceVersion:
-
-```bash
-kubectl edit csv metallb-operator
-```
-
-Change the `BGP_TYPE` environment variable:
-
-```yaml
-- name: METALLB_BGP_TYPE
-  value: frr  # or 'frr-k8s' for experimental mode
-```
-
----
-
-## Advanced Configuration
-
-### Setting LoadBalancer Class
-
-To use a specific LoadBalancer class, add the `--lb-class=<CLASS_NAME>` parameter to both speaker and controller.
-
-For Helm installations, use:
-
-```yaml
-loadBalancerClass: <CLASS_NAME>
-```
-
-### FRR Logging Level Configuration
-
-Configure FRR daemons logging by setting the speaker `--log-level` or use the `FRR_LOGGING_LEVEL` environment variable.
-
-Mapping:
-- `all, debug` → `debugging`
-- `info` → `informational`
-- `warn` → `warnings`
-- `error` → `error`
-- `none` → `emergencies`
-
----
-
-## Upgrading MetalLB
-
-### Step 1: Check Release Notes
-
-Always review the [release notes](https://metallb.io/release-notes/) before upgrading.
-
-### Step 2: Upgrade Using Your Installation Method
-
-**For Manifest:**
-```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/<NEW_VERSION>/config/manifests/metallb-native.yaml
-```
-
-**For Helm:**
-```bash
-helm upgrade metallb metallb/metallb
-```
-
-**For Kustomize:**
-Update the version in `kustomization.yml` and reapply.
-
----
-
-## Next Steps
-
-After installation, MetalLB will remain idle until configured. You need to:
-
-1. Create an `IPAddressPool` resource to define available IP addresses
-2. Create an `L2Advertisement` or `BGPAdvertisement` resource
-3. Deploy services with `type: LoadBalancer`
-
-Example configuration:
+### Basic IP Address Pool Configuration
 
 ```yaml
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: first-pool
   namespace: metallb-system
+  name: doc-example
+  labels:
+    zone: east
 spec:
   addresses:
-  - 192.168.1.240-192.168.1.250
----
+    - 203.0.113.1-203.0.113.10
+    - 203.0.113.65-203.0.113.75
+```
+
+Apply the configuration:
+```bash
+oc apply -f ipaddresspool.yaml
+```
+
+### IP Address Pool with VLAN Support
+
+For VLAN-specific configurations:
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  namespace: metallb-system
+  name: doc-example-vlan
+  labels:
+    zone: east
+spec:
+  addresses:
+    - 203.0.114.1-203.0.114.10  # Must match VLAN subnet
+```
+
+After creating the pool with VLAN, configure IP forwarding:
+```bash
+oc edit network.operator.openshift/cluster
+```
+
+Add under `spec.defaultNetwork.ovnKubernetesConfig`:
+```yaml
+gatewayConfig:
+  ipForwarding: Global
+```
+
+## Step 3: Configure Advertisement Method
+
+Choose between Layer 2 (L2) or BGP advertisement based on your network requirements.
+
+### Option A: Layer 2 Advertisement
+
+For simple deployments without BGP:
+
+```yaml
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: example
+  name: example-l2
   namespace: metallb-system
+spec:
+  ipAddressPools:
+    - doc-example
 ```
 
-Apply configuration:
+Apply the L2 advertisement:
+```bash
+oc apply -f l2advertisement.yaml
+```
+
+### Option B: BGP Advertisement
+
+For production deployments with BGP routing:
+
+#### Step 3.1: Create BGP Peer
+
+```yaml
+apiVersion: metallb.io/v1beta2
+kind: BGPPeer
+metadata:
+  namespace: metallb-system
+  name: doc-example-peer
+spec:
+  peerAddress: 10.0.0.1
+  peerASN: 64512
+  myASN: 64513
+  routerID: 10.10.10.10
+  peerPort: 179
+```
+
+Apply BGP peer:
+```bash
+oc apply -f bgppeer.yaml
+```
+
+#### Step 3.2: Create BGP Advertisement
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: BGPAdvertisement
+metadata:
+  name: example-bgp
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - doc-example
+  peers:
+    - doc-example-peer
+  aggregationLength: 32
+```
+
+Apply BGP advertisement:
+```bash
+oc apply -f bgpadvertisement.yaml
+```
+
+## Step 4: Configure Advanced Features (Optional)
+
+### BFD Profile for Faster Failure Detection
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: BFDProfile
+metadata:
+  name: example-bfd
+  namespace: metallb-system
+spec:
+  receiveInterval: 200
+  transmitInterval: 200
+  detectMultiplier: 3
+  echoInterval: 100
+  echoMode: false
+  passiveMode: false
+  minimumTtl: 254
+```
+
+Apply and associate with BGP peer:
+```yaml
+apiVersion: metallb.io/v1beta2
+kind: BGPPeer
+metadata:
+  namespace: metallb-system
+  name: doc-example-peer-bfd
+spec:
+  peerAddress: 10.0.0.1
+  peerASN: 64512
+  myASN: 64513
+  bfdProfile: example-bfd
+```
+
+### Community Aliases for BGP
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: Community
+metadata:
+  name: community-example
+  namespace: metallb-system
+spec:
+  communities:
+    - name: NO_ADVERTISE
+      value: "65535:65282"
+```
+
+## Step 5: Deploy a Service
+
+Create a LoadBalancer service to test the configuration:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-service
+  annotations:
+    metallb.io/address-pool: doc-example  # Optional: specify pool
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 203.0.113.5  # Optional: request specific IP
+  selector:
+    app: example
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+```
+
+Apply the service:
+```bash
+oc apply -f service.yaml
+```
+
+## Step 6: Verification
+
+### Verify IP Address Pool
+```bash
+oc describe -n metallb-system IPAddressPool doc-example
+```
+
+### Verify Service External IP
+```bash
+oc get service example-service
+```
+
+Expected output should show EXTERNAL-IP assigned from your pool.
+
+### For BGP Deployments - Check BGP Session
+```bash
+# Get speaker pod
+oc get -n metallb-system pods -l component=speaker
+
+# Check BGP summary
+oc exec -n metallb-system <speaker-pod> -c frr -- vtysh -c "show bgp summary"
+
+# Check BGP configuration
+oc exec -n metallb-system <speaker-pod> -c frr -- vtysh -c "show running-config"
+```
+
+### For L2 Deployments - Check L2 Status
+```bash
+oc describe -n metallb-system L2Advertisement example-l2
+```
+
+## Step 7: Advanced Configurations
+
+### Enable IP Forwarding for Secondary Interfaces
+
+For secondary interfaces, enable IP forwarding:
 
 ```bash
-kubectl apply -f config.yaml
+# For specific interface
+echo -e "net.ipv4.conf.bridge-net.forwarding = 1\nnet.ipv6.conf.bridge-net.forwarding = 1" | base64 -w0
 ```
 
----
+Create MachineConfig:
+```yaml
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: 99-enable-ip-forward
+  labels:
+    machineconfiguration.openshift.io/role: worker
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+        - path: /etc/sysctl.d/enable-ip-forward.conf
+          mode: 0644
+          contents:
+            source: data:text/plain;charset=utf-8;base64,<BASE64_ENCODED_STRING>
+```
+
+### Configure VRF for Network Isolation
+
+For VRF-based routing (Technology Preview):
+
+1. Create NodeNetworkConfigurationPolicy for VRF
+2. Configure BGPPeer with VRF
+3. Set up EgressService for symmetric routing
 
 ## Troubleshooting
 
-### Check Controller Logs
-```bash
-kubectl logs -n metallb-system deployment/controller
+### Enable Debug Logging
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: MetalLB
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  logLevel: debug
 ```
 
 ### Check Speaker Logs
 ```bash
-kubectl logs -n metallb-system daemonset/speaker
+oc logs -n metallb-system <speaker-pod> -c speaker
+oc logs -n metallb-system <speaker-pod> -c frr
 ```
 
-### Verify Service Assignment
+### Collect Diagnostic Information
 ```bash
-kubectl get svc
+oc adm must-gather
 ```
 
-### Check Events
-```bash
-kubectl get events -n metallb-system --sort-by='.lastTimestamp'
-```
+## Best Practices
 
----
+1. **IP Address Planning**: Ensure IP ranges don't overlap with existing network infrastructure
+2. **High Availability**: Use multiple speaker pods across different nodes
+3. **BGP Configuration**: For production, use BGP with BFD for faster failover
+4. **Security**: Use BGP authentication with passwords or secrets
+5. **Monitoring**: Set up Prometheus metrics for MetalLB components
+6. **Network Isolation**: Consider VRF for multi-tenant scenarios
+7. **Documentation**: Document your IP address allocations and BGP peer configurations
 
-## Quick Reference Commands
+## Common Issues and Solutions
 
-```bash
-# Check MetalLB version
-kubectl get deployment -n metallb-system controller -o jsonpath='{.spec.template.spec.containers[0].image}'
+### Issue: Service stuck in Pending state
+- Verify IP address pool has available addresses
+- Check speaker pod logs for allocation errors
+- Ensure MetalLB pods are running
 
-# Get all MetalLB resources
-kubectl get all -n metallb-system
+### Issue: BGP session not established
+- Verify network connectivity to BGP peer
+- Check BGP peer configuration matches
+- Review firewall rules for port 179
 
-# Describe a service to see LoadBalancer details
-kubectl describe svc <service-name>
+### Issue: Traffic not reaching service
+- Verify routing configuration
+- Check if IP forwarding is enabled (for secondary interfaces)
+- Ensure network allows ARP/NDP for L2 mode
 
-# Get IPAddressPools
-kubectl get ipaddresspool -n metallb-system
+## Summary
 
-# Get L2Advertisements
-kubectl get l2advertisement -n metallb-system
+This guide covers the essential steps to configure MetalLB for load balancing on OpenShift:
+1. Create IP address pools
+2. Configure advertisement (L2 or BGP)
+3. Deploy services with type LoadBalancer
+4. Verify and troubleshoot the configuration
 
-# Get BGPAdvertisements
-kubectl get bgpadvertisement -n metallb-system
-```
+For production environments, BGP with BFD is recommended for better scalability and faster failure detection. For simpler deployments, L2 mode provides an easy-to-configure solution without requiring BGP infrastructure.
