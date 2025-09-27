@@ -1,0 +1,31 @@
+apiVersion: v1
+baseDomain: us.eclub.com
+metadata:
+  name: eiab
+networking:
+  networkType: OVNKubernetes
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  serviceNetwork:
+  - 172.30.0.0/16
+compute:
+- name: worker
+  replicas: 6
+controlPlane:
+  name: master
+  replicas: 3
+platform:
+  none: {}
+pullSecret: '{"auths":{"<local_registry>": {"auth": "<credentials>","email": "you@example.com"}}}'
+sshKey: |
+  <contents of ~/.ssh/openshift-key.pub>
+imageContentSources:
+- mirrors:
+  - registry.example.com:5000/openshift/release-images
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - registry.example.com:5000/openshift/release
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+additionalTrustBundle: |
+  $(cat /opt/registry/certs/registry.crt | sed 's/^/  /')
