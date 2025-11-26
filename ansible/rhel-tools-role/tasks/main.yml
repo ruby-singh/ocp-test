@@ -1,0 +1,15 @@
+#SPDX-License-Identifier: MIT-0
+---
+
+# tasks file for rhel-tools-role
+# ==============================
+# PHASE 1: Download All Components Locally
+# ==============================
+
+- name: Include task to create tar file
+  include_tasks: sub_tasks/create_tar_file.yml
+
+# - name: Include task to copy tar file to target nodes
+#   include_tasks: sub_tasks/copy_tar.yml
+# - name: Include task to install tools on target nodes
+#   include_tasks: sub_tasks/install_tools.yml

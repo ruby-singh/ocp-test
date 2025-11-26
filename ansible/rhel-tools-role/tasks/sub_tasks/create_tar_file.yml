@@ -1,0 +1,169 @@
+# ------------------------------
+# 1. Create local directories
+# ------------------------------
+- name: Ensure local download directory exists
+  delegate_to: localhost
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+  - "{{ local_download_dir }}"
+  - "{{ local_extract_dir }}"
+  - "{{ local_extract_dir }}/bin"
+  - "{{ local_extract_dir }}/httpd"
+  - "{{ local_extract_dir }}/httpd-tools"
+  - "{{ local_extract_dir }}/firewalld"
+  - "{{ local_extract_dir }}/dnsmasq"
+
+# ------------------------------
+# 2. Download Podman tarball
+# ------------------------------
+- name: Download Podman tarball on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ podman_download_url }}"
+    dest: "{{ local_download_dir }}/podman.tar.gz"
+    mode: '0644'
+  register: podman_download
+
+# ------------------------------
+# 3. Download Skopeo tarball
+# ------------------------------
+- name: Download Skopeo source tarball on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ skopeo_download_url }}"
+    dest: "{{ local_download_dir }}/skopeo.tar.gz"
+    mode: '0644'
+  register: skopeo_download
+
+# ------------------------------
+# 4. Download httpd tarball
+# ------------------------------
+- name: Download httpd tarball on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ httpd_download_url }}"
+    dest: "{{ local_download_dir }}/httpd.tar.gz"
+    mode: '0644'
+  register: httpd_download
+
+# ------------------------------
+# 5. Download httpd-tools RPM
+# ------------------------------
+# - name: Download httpd-tools RPM on control node
+#   delegate_to: localhost
+#   get_url:
+#     url: "{{ httpd_tools_rpm_url }}"
+#     dest: "{{ local_download_dir }}/httpd-tools.rpm"
+#     mode: '0644'
+#   register: httpd_tools_download
+
+# ------------------------------
+# 6. Download firewalld RPM
+# ------------------------------
+# - name: Download firewalld RPM on control node
+#   delegate_to: localhost
+#   get_url:
+#     url: "{{ firewalld_rpm_url }}"
+#     dest: "{{ local_download_dir }}/firewalld.rpm"
+#     mode: '0644'
+#   register: firewalld_download
+
+# ------------------------------
+# 7. Download dnsmasq RPM
+# ------------------------------
+# - name: Download dnsmasq RPM on control node
+#   delegate_to: localhost
+#   get_url:
+#     url: "{{ dnsmasq_rpm_url }}"
+#     dest: "{{ local_download_dir }}/dnsmasq.rpm"
+#     mode: '0644'
+#   register: dnsmasq_download
+
+# ==============================
+# PHASE 2: Extract All Components
+# ==============================
+
+# ------------------------------
+# 8a. Extract Podman tarball
+# ------------------------------
+- name: Extract Podman tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/podman.tar.gz -C {{ local_extract_dir }}/bin
+
+# ------------------------------
+# 8b. Extract Skopeo source tarball
+# ------------------------------
+- name: Extract Skopeo source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/skopeo.tar.gz -C {{ local_extract_dir }}
+
+# ------------------------------
+# 8c. Extract httpd tarball
+# ------------------------------
+- name: Extract httpd tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/httpd.tar.gz -C {{ local_extract_dir }}/httpd --strip-components=1
+
+# ------------------------------
+# 8d. Extract httpd-tools RPM
+# ------------------------------
+# - name: Extract httpd-tools RPM to staging directory
+#   delegate_to: localhost
+#   shell: |
+#     cd {{ local_extract_dir }}/httpd-tools
+#     rpm2cpio {{ local_download_dir }}/httpd-tools.rpm | cpio -idmv
+
+# ------------------------------
+# 8e. Extract firewalld RPM
+# ------------------------------
+# - name: Extract firewalld RPM to staging directory
+#   delegate_to: localhost
+#   shell: |
+#     cd {{ local_extract_dir }}/firewalld
+#     rpm2cpio {{ local_download_dir }}/firewalld.rpm | cpio -idmv
+
+# ------------------------------
+# 8f. Extract dnsmasq RPM
+# ------------------------------
+# - name: Extract dnsmasq RPM to staging directory
+#   delegate_to: localhost
+#   shell: |
+#     cd {{ local_extract_dir }}/dnsmasq
+#     rpm2cpio {{ local_download_dir }}/dnsmasq.rpm | cpio -idmv
+
+# ==============================
+# PHASE 3: Create Combined Tarball
+# ==============================
+
+# ------------------------------
+# 9. Create combined tarball
+# ------------------------------
+- name: Create combined tarball with all components
+  delegate_to: localhost
+  archive:
+    path: "{{ local_extract_dir }}/*"
+    dest: "{{ local_combined_tar }}"
+    format: gz
+    mode: '0644'
+  register: combined_tar
+
+# ------------------------------
+# 10. Display tarball information
+# ------------------------------
+- name: Get combined tarball stats
+  delegate_to: localhost
+  stat:
+    path: "{{ local_combined_tar }}"
+  register: tar_stats
+
+- name: Display combined tarball information
+  delegate_to: localhost
+  debug:
+    msg:
+    - "Combined tarball created successfully"
+    - "Location: {{ local_combined_tar }}"
+    - "Size: {{ (tar_stats.stat.size / 1024 / 1024) | round(2) }} MB"
+  run_once: true

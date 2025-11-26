@@ -1,0 +1,123 @@
+# ------------------------------
+# 11. Create installation directories on target
+# ------------------------------
+- name: Ensure installation directories exist on target
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  become: true
+  loop:
+  - "{{ install_dir }}"
+  - "{{ httpd_install_dir }}"
+
+# ------------------------------
+# 12. Extract combined tarball on target
+# ------------------------------
+- name: Extract combined tarball on target node
+  unarchive:
+    src: "{{ remote_tar_file }}"
+    dest: "/tmp/container-tools-install"
+    remote_src: yes
+  become: true
+
+# ------------------------------
+# 13. Move binaries to installation directory
+# ------------------------------
+- name: Move binaries to installation directory
+  shell: |
+    find /tmp/container-tools-install/bin -type f -executable -exec cp {} {{ install_dir }}/ \;
+    chmod +x {{ install_dir }}/*
+  become: true
+
+# ------------------------------
+# 14. Compile and install Skopeo
+# ------------------------------
+- name: Find Skopeo source directory
+  shell: find /tmp/container-tools-install -name "skopeo-*" -type d
+  register: skopeo_dir
+  become: true
+
+- name: Compile and install Skopeo
+  shell: |
+    cd {{ skopeo_dir.stdout_lines[0] }}
+    make bin/skopeo
+    cp bin/skopeo {{ install_dir }}/
+    chmod +x {{ install_dir }}/skopeo
+  become: true
+  when: skopeo_dir.stdout_lines | length > 0
+
+# ------------------------------
+# 15. Move httpd to installation directory
+# ------------------------------
+- name: Move httpd to installation directory
+  shell: cp -r /tmp/container-tools-install/httpd/* {{ httpd_install_dir }}/
+  become: true
+
+# ------------------------------
+# 15a. Install httpd-tools binaries
+# ------------------------------
+- name: Find httpd-tools binaries in extracted RPM
+  shell: find /tmp/container-tools-install/httpd-tools -type f -executable
+  register: httpd_tools_bins
+  become: true
+
+- name: Copy httpd-tools binaries to installation directory
+  shell: |
+    find /tmp/container-tools-install/httpd-tools/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \;
+    chmod +x {{ install_dir }}/htpasswd {{ install_dir }}/ab 2>/dev/null || true
+  become: true
+  when: httpd_tools_bins.stdout_lines | length > 0
+
+# ------------------------------
+# 15b. Install firewalld binaries and files
+# ------------------------------
+- name: Find firewalld binaries in extracted RPM
+  shell: find /tmp/container-tools-install/firewalld -type f -executable
+  register: firewalld_bins
+  become: true
+
+- name: Copy firewalld binaries to installation directory
+  shell: |
+    find /tmp/container-tools-install/firewalld/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+    find /tmp/container-tools-install/firewalld/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+    chmod +x {{ install_dir }}/firewalld* {{ install_dir }}/firewall-* 2>/dev/null || true
+  become: true
+  when: firewalld_bins.stdout_lines | length > 0
+
+# ------------------------------
+# 15c. Install dnsmasq binaries
+# ------------------------------
+- name: Find dnsmasq binaries in extracted RPM
+  shell: find /tmp/container-tools-install/dnsmasq -type f -executable
+  register: dnsmasq_bins
+  become: true
+
+- name: Copy dnsmasq binaries to installation directory
+  shell: |
+    find /tmp/container-tools-install/dnsmasq/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+    chmod +x {{ install_dir }}/dnsmasq* 2>/dev/null || true
+  become: true
+  when: dnsmasq_bins.stdout_lines | length > 0
+
+# ------------------------------
+# 16. Compile and install httpd
+# ------------------------------
+- name: Configure, compile and install httpd
+  shell: |
+    cd {{ httpd_install_dir }}
+    ./configure --prefix={{ httpd_install_dir }} --enable-so --enable-ssl
+    make
+    make install
+  become: true
+  when: httpd_download.changed
+
+# ------------------------------
+# 17. Create symlink for httpd
+# ------------------------------
+- name: Create symlink for httpd binary
+  file:
+    src: "{{ httpd_install_dir }}/bin/httpd"
+    dest: "{{ install_dir }}/httpd"
+    state: link
+  become: true

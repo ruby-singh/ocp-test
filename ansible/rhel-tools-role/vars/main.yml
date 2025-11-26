@@ -1,0 +1,33 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for rhel-tools-role
+# Download URLs
+
+# NOTE: GitHub release URLs with JWT tokens expire. Get fresh URLs from:
+# Podman: https://github.com/containers/podman/releases (look for podman-remote-static-linux_amd64.tar.gz)
+podman_download_url: "https://github.com/containers/podman/releases/download/v5.3.1/podman-remote-static-linux_amd64.tar.gz"
+skopeo_download_url: "https://github.com/containers/skopeo/archive/refs/tags/v1.17.0.tar.gz"
+httpd_download_url: "https://dlcdn.apache.org/httpd/httpd-2.4.65.tar.gz"
+# NOTE: Using AlmaLinux vault (EL8 compatible, version 2.4.37-65 from AlmaLinux 8.10)
+httpd_tools_rpm_url: "http://vault.almalinux.org/8.10/AppStream/x86_64/os/Packages/httpd-tools-2.4.37-65.module_el8.10.0+3860+a6e26e50.x86_64.rpm"
+firewalld_rpm_url: "http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/firewalld-0.9.3-13.el8.noarch.rpm"
+dnsmasq_rpm_url: "http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/dnsmasq-2.79-31.el8.x86_64.rpm"
+
+# Local directories
+local_download_dir: "/tmp/container-tools-download"
+local_extract_dir: "/tmp/container-tools-extract"
+local_combined_tar: "/tmp/container-tools-combined.tar.gz"
+
+# Remote paths
+remote_tar_file: "/tmp/container-tools-combined.tar.gz"
+install_dir: "/usr/local/bin"
+httpd_install_dir: "/opt/httpd"
+
+# List of binaries to verify
+binaries_to_check:
+- podman
+- skopeo
+- httpd
+- htpasswd
+- firewalld
+- dnsmasq

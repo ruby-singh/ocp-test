@@ -1,0 +1,8 @@
+# ------------------------------
+# 10. Copy combined tarball to target nodes
+# ------------------------------
+- name: Copy combined tarball to target node
+  copy:
+    src: "{{ local_combined_tar }}"
+    dest: "{{ remote_tar_file }}"
+    mode: '0644'
