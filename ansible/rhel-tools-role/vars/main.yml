@@ -9,17 +9,34 @@ podman_download_url: "https://github.com/containers/podman/releases/download/v5.
 skopeo_download_url: "https://github.com/containers/skopeo/archive/refs/tags/v1.17.0.tar.gz"
 httpd_download_url: "https://dlcdn.apache.org/httpd/httpd-2.4.65.tar.gz"
 # NOTE: Using AlmaLinux vault (EL8 compatible, version 2.4.37-65 from AlmaLinux 8.10)
-httpd_tools_rpm_url: "http://vault.almalinux.org/8.10/AppStream/x86_64/os/Packages/httpd-tools-2.4.37-65.module_el8.10.0+3860+a6e26e50.x86_64.rpm"
-firewalld_rpm_url: "http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/firewalld-0.9.3-13.el8.noarch.rpm"
-dnsmasq_rpm_url: "http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/dnsmasq-2.79-31.el8.x86_64.rpm"
+httpd_tools_download_url: "http://vault.almalinux.org/8.10/AppStream/x86_64/os/Packages/httpd-tools-2.4.37-65.module_el8.10.0+3860+a6e26e50.x86_64.rpm"
+firewalld_download_url: "http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os/Packages/firewalld-0.9.3-13.el8.noarch.rpm"
+dnsmasq_download_url: "http://mirror.centos.org/centos/8-stream/AppStream/x86_64/os/Packages/dnsmasq-2.79-31.el8.x86_64.rpm"
+git_download_url: "https://www.kernel.org/pub/software/scm/git/git-2.9.5.tar.gz"
+wget_download_url: "https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz"
+curl_download_url: "https://curl.se/download/curl-8.17.0.tar.gz"
+vim_download_url: "https://anduin.linuxfromscratch.org/LFS/vim-9.0.1677.tar.gz"
+bind_utils_download_url: "https://mirror.ourhost.az/almalinux/9.6/AppStream/x86_64/os/Packages/bind-utils-9.16.23-34.el9_7.1.x86_64.rpm"
+telnet_download_url: "https://ftp.gnu.org/gnu/inetutils/inetutils-1.9.4.tar.xz"
+jq_download_url: "https://github.com/stedolan/jq/releases/download/jq-1.7/jq-linux64"
+buildah_download_url: "https://github.com/containers/buildah/archive/refs/tags/v1.41.0.tar.gz"
+openssl_download_url: "https://www.openssl.org/source/openssl-3.4.0.tar.gz"
+helm_download_url: "https://get.helm.sh/helm-v3.16.3-linux-amd64.tar.gz"
+haproxy_download_url: "https://www.haproxy.org/download/3.1/src/haproxy-3.1.0.tar.gz"
+rsync_download_url: "https://download.samba.org/pub/rsync/src/rsync-3.4.1.tar.gz"
 
-# Local directories
-local_download_dir: "/tmp/container-tools-download"
-local_extract_dir: "/tmp/container-tools-extract"
-local_combined_tar: "/tmp/container-tools-combined.tar.gz"
+# Project directories
+project_root: "{{ playbook_dir | dirname }}"
+build_dir: "{{ project_root }}/build"
 
-# Remote paths
+# Local directories (on control node)
+local_download_dir: "{{ build_dir }}/downloads"
+local_extract_dir: "{{ build_dir }}/extract"
+local_combined_tar: "{{ build_dir }}/container-tools-combined.tar.gz"
+
+# Remote paths (on target nodes)
 remote_tar_file: "/tmp/container-tools-combined.tar.gz"
+remote_install_temp: "/tmp/container-tools-install"
 install_dir: "/usr/local/bin"
 httpd_install_dir: "/opt/httpd"
 
@@ -31,3 +48,16 @@ binaries_to_check:
 - htpasswd
 - firewalld
 - dnsmasq
+- git
+- wget
+- curl
+- vim
+- dig
+- nslookup
+- telnet
+- jq
+- buildah
+- openssl
+- helm
+- haproxy
+- rsync

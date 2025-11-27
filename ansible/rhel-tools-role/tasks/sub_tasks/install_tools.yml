@@ -1,123 +1,237 @@
-# ------------------------------
-# 11. Create installation directories on target
-# ------------------------------
-- name: Ensure installation directories exist on target
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
+---
+# All tasks in this file require elevated privileges
+- name: Install tools on target nodes
   become: true
-  loop:
-  - "{{ install_dir }}"
-  - "{{ httpd_install_dir }}"
+  block:
+  # ------------------------------
+  # 11. Create installation directories on target
+  # ------------------------------
+  - name: Ensure installation directories exist on target
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: '0755'
+    loop:
+    - "{{ install_dir }}"
+    - "{{ httpd_install_dir }}"
 
-# ------------------------------
-# 12. Extract combined tarball on target
-# ------------------------------
-- name: Extract combined tarball on target node
-  unarchive:
-    src: "{{ remote_tar_file }}"
-    dest: "/tmp/container-tools-install"
-    remote_src: yes
-  become: true
+  # ------------------------------
+  # 12. Extract combined tarball on target
+  # ------------------------------
+  - name: Extract combined tarball on target node
+    unarchive:
+      src: "{{ remote_tar_file }}"
+      dest: "{{ remote_install_temp }}"
+      remote_src: yes
 
-# ------------------------------
-# 13. Move binaries to installation directory
-# ------------------------------
-- name: Move binaries to installation directory
-  shell: |
-    find /tmp/container-tools-install/bin -type f -executable -exec cp {} {{ install_dir }}/ \;
-    chmod +x {{ install_dir }}/*
-  become: true
+  # ------------------------------
+  # 13. Move binaries to installation directory
+  # ------------------------------
+  - name: Move binaries to installation directory
+    shell: |
+      find {{ remote_install_temp }}/bin -type f -executable -exec cp {} {{ install_dir }}/ \;
+      chmod +x {{ install_dir }}/*
 
-# ------------------------------
-# 14. Compile and install Skopeo
-# ------------------------------
-- name: Find Skopeo source directory
-  shell: find /tmp/container-tools-install -name "skopeo-*" -type d
-  register: skopeo_dir
-  become: true
+  # ------------------------------
+  # 14. Compile and install Skopeo
+  # ------------------------------
+  - name: Find Skopeo source directory
+    shell: find {{ remote_install_temp }} -name "skopeo-*" -type d
+    register: skopeo_dir
 
-- name: Compile and install Skopeo
-  shell: |
-    cd {{ skopeo_dir.stdout_lines[0] }}
-    make bin/skopeo
-    cp bin/skopeo {{ install_dir }}/
-    chmod +x {{ install_dir }}/skopeo
-  become: true
-  when: skopeo_dir.stdout_lines | length > 0
+  - name: Compile and install Skopeo
+    shell: |
+      cd {{ skopeo_dir.stdout_lines[0] }}
+      make bin/skopeo
+      cp bin/skopeo {{ install_dir }}/
+      chmod +x {{ install_dir }}/skopeo
+    when: skopeo_dir.stdout_lines | length > 0
 
-# ------------------------------
-# 15. Move httpd to installation directory
-# ------------------------------
-- name: Move httpd to installation directory
-  shell: cp -r /tmp/container-tools-install/httpd/* {{ httpd_install_dir }}/
-  become: true
+  # ------------------------------
+  # 15. Move httpd to installation directory
+  # ------------------------------
+  - name: Move httpd to installation directory
+    shell: cp -r {{ remote_install_temp }}/httpd/* {{ httpd_install_dir }}/
 
-# ------------------------------
-# 15a. Install httpd-tools binaries
-# ------------------------------
-- name: Find httpd-tools binaries in extracted RPM
-  shell: find /tmp/container-tools-install/httpd-tools -type f -executable
-  register: httpd_tools_bins
-  become: true
+  # ------------------------------
+  # 15a. Install httpd-tools binaries
+  # ------------------------------
+  - name: Find httpd-tools binaries in extracted RPM
+    shell: find {{ remote_install_temp }}/httpd-tools -type f -executable
+    register: httpd_tools_bins
 
-- name: Copy httpd-tools binaries to installation directory
-  shell: |
-    find /tmp/container-tools-install/httpd-tools/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \;
-    chmod +x {{ install_dir }}/htpasswd {{ install_dir }}/ab 2>/dev/null || true
-  become: true
-  when: httpd_tools_bins.stdout_lines | length > 0
+  - name: Copy httpd-tools binaries to installation directory
+    shell: |
+      find {{ remote_install_temp }}/httpd-tools/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \;
+      chmod +x {{ install_dir }}/htpasswd {{ install_dir }}/ab 2>/dev/null || true
+    when: httpd_tools_bins.stdout_lines | length > 0
 
-# ------------------------------
-# 15b. Install firewalld binaries and files
-# ------------------------------
-- name: Find firewalld binaries in extracted RPM
-  shell: find /tmp/container-tools-install/firewalld -type f -executable
-  register: firewalld_bins
-  become: true
+  # ------------------------------
+  # 15b. Install firewalld binaries and files
+  # ------------------------------
+  - name: Find firewalld binaries in extracted RPM
+    shell: find {{ remote_install_temp }}/firewalld -type f -executable
+    register: firewalld_bins
 
-- name: Copy firewalld binaries to installation directory
-  shell: |
-    find /tmp/container-tools-install/firewalld/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
-    find /tmp/container-tools-install/firewalld/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
-    chmod +x {{ install_dir }}/firewalld* {{ install_dir }}/firewall-* 2>/dev/null || true
-  become: true
-  when: firewalld_bins.stdout_lines | length > 0
+  - name: Copy firewalld binaries to installation directory
+    shell: |
+      find {{ remote_install_temp }}/firewalld/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+      find {{ remote_install_temp }}/firewalld/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+      chmod +x {{ install_dir }}/firewalld* {{ install_dir }}/firewall-* 2>/dev/null || true
+    when: firewalld_bins.stdout_lines | length > 0
 
-# ------------------------------
-# 15c. Install dnsmasq binaries
-# ------------------------------
-- name: Find dnsmasq binaries in extracted RPM
-  shell: find /tmp/container-tools-install/dnsmasq -type f -executable
-  register: dnsmasq_bins
-  become: true
+  # ------------------------------
+  # 15c. Install dnsmasq binaries
+  # ------------------------------
+  - name: Find dnsmasq binaries in extracted RPM
+    shell: find {{ remote_install_temp }}/dnsmasq -type f -executable
+    register: dnsmasq_bins
 
-- name: Copy dnsmasq binaries to installation directory
-  shell: |
-    find /tmp/container-tools-install/dnsmasq/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
-    chmod +x {{ install_dir }}/dnsmasq* 2>/dev/null || true
-  become: true
-  when: dnsmasq_bins.stdout_lines | length > 0
+  - name: Copy dnsmasq binaries to installation directory
+    shell: |
+      find {{ remote_install_temp }}/dnsmasq/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+      chmod +x {{ install_dir }}/dnsmasq* 2>/dev/null || true
+    when: dnsmasq_bins.stdout_lines | length > 0
 
-# ------------------------------
-# 16. Compile and install httpd
-# ------------------------------
-- name: Configure, compile and install httpd
-  shell: |
-    cd {{ httpd_install_dir }}
-    ./configure --prefix={{ httpd_install_dir }} --enable-so --enable-ssl
-    make
-    make install
-  become: true
-  when: httpd_download.changed
+  # ------------------------------
+  # 15d. Compile and install git
+  # ------------------------------
+  - name: Configure, compile and install git
+    shell: |
+      cd {{ remote_install_temp }}/git
+      make configure
+      ./configure --prefix={{ install_dir }}
+      make all
+      make install
+    when: git_download.changed
 
-# ------------------------------
-# 17. Create symlink for httpd
-# ------------------------------
-- name: Create symlink for httpd binary
-  file:
-    src: "{{ httpd_install_dir }}/bin/httpd"
-    dest: "{{ install_dir }}/httpd"
-    state: link
-  become: true
+  # ------------------------------
+  # 15e. Compile and install wget
+  # ------------------------------
+  - name: Configure, compile and install wget
+    shell: |
+      cd {{ remote_install_temp }}/wget
+      ./configure --prefix={{ install_dir }} --with-ssl=openssl
+      make
+      make install
+    when: wget_download.changed
+
+  # ------------------------------
+  # 15f. Compile and install curl
+  # ------------------------------
+  - name: Configure, compile and install curl
+    shell: |
+      cd {{ remote_install_temp }}/curl
+      ./configure --prefix={{ install_dir }} --with-ssl
+      make
+      make install
+    when: curl_download.changed
+
+  # ------------------------------
+  # 15g. Compile and install vim
+  # ------------------------------
+  - name: Configure, compile and install vim
+    shell: |
+      cd {{ remote_install_temp }}/vim
+      ./configure --prefix={{ install_dir }}
+      make
+      make install
+    when: vim_download.changed
+
+  # ------------------------------
+  # 15h. Install bind-utils binaries
+  # ------------------------------
+  # - name: Find bind-utils binaries in extracted RPM
+  #   shell: find {{ remote_install_temp }}/bind-utils -type f -executable
+  #   register: bind_utils_bins
+
+  # - name: Copy bind-utils binaries to installation directory
+  #   shell: |
+  #     find {{ remote_install_temp }}/bind-utils/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+  #     find {{ remote_install_temp }}/bind-utils/usr/sbin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+  #     chmod +x {{ install_dir }}/dig {{ install_dir }}/nslookup 2>/dev/null || true
+  #   when: bind_utils_bins.stdout_lines | length > 0
+
+  # ------------------------------
+  # 15i. Install telnet binaries
+  # ------------------------------
+  - name: Find telnet binaries in extracted RPM
+    shell: find {{ remote_install_temp }}/telnet -type f -executable
+    register: telnet_bins
+
+  - name: Copy telnet binaries to installation directory
+    shell: |
+      find {{ remote_install_temp }}/telnet/usr/bin -type f -executable -exec cp {} {{ install_dir }}/ \; 2>/dev/null || true
+      chmod +x {{ install_dir }}/telnet 2>/dev/null || true
+    when: telnet_bins.stdout_lines | length > 0
+
+  # ------------------------------
+  # 15j. jq is already in bin directory (pre-compiled binary)
+  # ------------------------------
+
+  # ------------------------------
+  # 15k. Compile and install buildah
+  # ------------------------------
+  - name: Compile and install buildah
+    shell: |
+      cd {{ remote_install_temp }}/buildah
+      make
+      cp buildah {{ install_dir }}/
+      chmod +x {{ install_dir }}/buildah
+    when: buildah_download.changed
+
+  # ------------------------------
+  # 15l. Compile and install openssl
+  # ------------------------------
+  - name: Configure, compile and install openssl
+    shell: |
+      cd {{ remote_install_temp }}/openssl
+      ./config --prefix={{ install_dir }} --openssldir={{ install_dir }}/ssl
+      make
+      make install
+    when: openssl_download.changed
+
+  # ------------------------------
+  # 15m. helm is already in bin directory (pre-compiled binary)
+  # ------------------------------
+
+  # ------------------------------
+  # 15n. Compile and install haproxy
+  # ------------------------------
+  - name: Compile and install haproxy
+    shell: |
+      cd {{ remote_install_temp }}/haproxy
+      make TARGET=linux-glibc
+      make install PREFIX={{ install_dir }}
+    when: haproxy_download.changed
+
+  # ------------------------------
+  # 15o. Compile and install rsync
+  # ------------------------------
+  - name: Configure, compile and install rsync
+    shell: |
+      cd {{ remote_install_temp }}/rsync
+      ./configure --prefix={{ install_dir }}
+      make
+      make install
+    when: rsync_download.changed
+
+  # ------------------------------
+  # 16. Compile and install httpd
+  # ------------------------------
+  - name: Configure, compile and install httpd
+    shell: |
+      cd {{ httpd_install_dir }}
+      ./configure --prefix={{ httpd_install_dir }} --enable-so --enable-ssl
+      make
+      make install
+    when: httpd_download.changed
+
+  # ------------------------------
+  # 17. Create symlink for httpd
+  # ------------------------------
+  - name: Create symlink for httpd binary
+    file:
+      src: "{{ httpd_install_dir }}/bin/httpd"
+      dest: "{{ install_dir }}/httpd"
+      state: link
