@@ -198,7 +198,7 @@
     dest: "{{ local_download_dir }}/bind-utils.rpm"
     mode: '0644'
     validate_certs: false
-    timeout: 600
+    timeout: 300
     force: false
   register: bind_utils_download
 
