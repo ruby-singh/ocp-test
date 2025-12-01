@@ -69,6 +69,8 @@
     url: "{{ almalinux_appstream_repo_url }}{{ httpd_tools_filename.stdout }}"
     dest: "{{ local_download_dir }}/httpd-tools.rpm"
     mode: '0644'
+    force: false
+    timeout: 300
     validate_certs: no
 
 # ------------------------------
@@ -89,7 +91,7 @@
     dest: "{{ local_download_dir }}/firewalld.rpm"
     mode: '0644'
     validate_certs: false
-    timeout: 600
+    timeout: 300
     force: false
   register: firewalld_download
 
@@ -115,7 +117,7 @@
     dest: "{{ local_download_dir }}/dnsmasq.rpm"
     mode: '0644'
     validate_certs: false
-    timeout: 600
+    timeout: 300
     force: false
 
 # ------------------------------
