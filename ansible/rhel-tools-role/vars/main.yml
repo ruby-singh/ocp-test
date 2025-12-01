@@ -35,7 +35,7 @@ local_extract_dir: "{{ build_dir }}/tools_extract"
 local_combined_tar: "{{ build_dir }}/tools_download.tar.gz"
 
 # Remote paths (on target nodes)
-remote_tar_file: "/tmp/container-tools-combined.tar.gz"
+remote_tar_file: "/tmp/tools_download.tar.gz"
 remote_install_temp: "/tmp/container-tools-install"
 install_dir: "/usr/local/bin"
 httpd_install_dir: "/opt/httpd"
