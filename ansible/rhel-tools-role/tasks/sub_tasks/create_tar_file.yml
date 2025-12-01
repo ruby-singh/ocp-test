@@ -301,7 +301,7 @@
   register: rsync_download
 
 # ------------------------------
-# 9. Create tarball of all downloads
+# 20. Create tarball of all downloads
 # ------------------------------
 - name: Create tarball with all downloaded dependencies
   delegate_to: localhost
@@ -313,7 +313,7 @@
   register: combined_tar
 
 # ------------------------------
-# 10. Display tarball information
+# 21. Display tarball information
 # ------------------------------
 - name: Get combined tarball stats
   delegate_to: localhost

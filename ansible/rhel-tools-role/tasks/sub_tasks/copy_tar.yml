@@ -6,3 +6,4 @@
     src: "{{ local_combined_tar }}"
     dest: "{{ remote_tar_file }}"
     mode: '0644'
+    force: yes

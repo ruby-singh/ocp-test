@@ -1,0 +1,171 @@
+# ==============================
+# PHASE 2: Extract All Components
+# ==============================
+
+# ------------------------------
+# 1. Create project build directories
+# ------------------------------
+- name: Ensure build directories exist in project
+  delegate_to: localhost
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+  - "{{ local_extract_dir }}"
+  - "{{ local_extract_dir }}/bin"
+  - "{{ local_extract_dir }}/httpd"
+  - "{{ local_extract_dir }}/httpd-tools"
+  - "{{ local_extract_dir }}/firewalld"
+  - "{{ local_extract_dir }}/dnsmasq"
+  - "{{ local_extract_dir }}/git"
+  - "{{ local_extract_dir }}/wget"
+  - "{{ local_extract_dir }}/curl"
+  - "{{ local_extract_dir }}/vim"
+  - "{{ local_extract_dir }}/bind-utils"
+  - "{{ local_extract_dir }}/telnet"
+  - "{{ local_extract_dir }}/buildah"
+  - "{{ local_extract_dir }}/openssl"
+  - "{{ local_extract_dir }}/helm"
+  - "{{ local_extract_dir }}/haproxy"
+  - "{{ local_extract_dir }}/rsync"
+
+# ------------------------------
+# 8a. Extract Podman tarball
+# ------------------------------
+- name: Extract Podman tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/podman.tar.gz -C {{ local_extract_dir }}/bin
+
+# ------------------------------
+# 8b. Extract Skopeo source tarball
+# ------------------------------
+- name: Extract Skopeo source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/skopeo.tar.gz -C {{ local_extract_dir }}
+
+# ------------------------------
+# 8c. Extract httpd tarball
+# ------------------------------
+- name: Extract httpd tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/httpd.tar.gz -C {{ local_extract_dir }}/httpd --strip-components=1
+
+# ------------------------------
+# 8d. Extract httpd-tools RPM
+# ------------------------------
+- name: Extract httpd-tools RPM to staging directory
+  delegate_to: localhost
+  shell: |
+    cd {{ local_extract_dir }}/httpd-tools
+    rpm2cpio {{ local_download_dir }}/httpd-tools.rpm | cpio -idmv
+
+# ------------------------------
+# 8e. Extract firewalld RPM
+# ------------------------------
+- name: Extract firewalld RPM to staging directory
+  delegate_to: localhost
+  shell: |
+    cd {{ local_extract_dir }}/firewalld
+    rpm2cpio {{ local_download_dir }}/firewalld.rpm | cpio -idmv
+
+# ------------------------------
+# 8f. Extract dnsmasq RPM
+# ------------------------------
+- name: Extract dnsmasq RPM to staging directory
+  delegate_to: localhost
+  shell: |
+    cd {{ local_extract_dir }}/dnsmasq
+    rpm2cpio {{ local_download_dir }}/dnsmasq.rpm | cpio -idmv
+
+# ------------------------------
+# 8g. Extract git source tarball
+# ------------------------------
+- name: Extract git source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/git.tar.gz -C {{ local_extract_dir }}/git --strip-components=1
+
+# ------------------------------
+# 8h. Extract wget source tarball
+# ------------------------------
+- name: Extract wget source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/wget.tar.gz -C {{ local_extract_dir }}/wget --strip-components=1
+
+# ------------------------------
+# 8i. Extract curl source tarball
+# ------------------------------
+- name: Extract curl source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/curl.tar.gz -C {{ local_extract_dir }}/curl --strip-components=1
+
+# ------------------------------
+# 8j. Extract vim source tarball
+# ------------------------------
+- name: Extract vim source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/vim.tar.gz -C {{ local_extract_dir }}/vim --strip-components=1
+
+# ------------------------------
+# 8k. Extract bind-utils RPM
+# ------------------------------
+- name: Extract bind-utils RPM to staging directory
+  delegate_to: localhost
+  shell: |
+    cd {{ local_extract_dir }}/bind-utils
+    rpm2cpio {{ local_download_dir }}/bind-utils.rpm | cpio -idmv
+
+# ------------------------------
+# 8l. Extract telnet RPM
+# ------------------------------
+- name: Extract telnet RPM to staging directory
+  delegate_to: localhost
+  shell: |
+    cd {{ local_extract_dir }}/telnet
+    rpm2cpio {{ local_download_dir }}/telnet.rpm | cpio -idmv
+
+# ------------------------------
+# 8m. Copy jq binary to bin directory
+# ------------------------------
+- name: Copy jq binary to bin directory
+  delegate_to: localhost
+  shell: cp {{ local_download_dir }}/jq {{ local_extract_dir }}/bin/jq
+
+# ------------------------------
+# 8n. Extract buildah source tarball
+# ------------------------------
+- name: Extract buildah source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/buildah.tar.gz -C {{ local_extract_dir }}/buildah --strip-components=1
+
+# ------------------------------
+# 8o. Extract openssl source tarball
+# ------------------------------
+- name: Extract openssl source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/openssl.tar.gz -C {{ local_extract_dir }}/openssl --strip-components=1
+
+# ------------------------------
+# 8p. Extract helm tarball
+# ------------------------------
+- name: Extract helm tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/helm.tar.gz -C {{ local_extract_dir }}/bin --strip-components=1
+
+# ------------------------------
+# 8q. Extract haproxy source tarball
+# ------------------------------
+- name: Extract haproxy source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/haproxy.tar.gz -C {{ local_extract_dir }}/haproxy --strip-components=1
+
+# ------------------------------
+# 8r. Extract rsync source tarball
+# ------------------------------
+- name: Extract rsync source tarball to staging directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/rsync.tar.gz -C {{ local_extract_dir }}/rsync --strip-components=1
+
+# ==============================
+# PHASE 3: Create Combined Tarball
+# ==============================

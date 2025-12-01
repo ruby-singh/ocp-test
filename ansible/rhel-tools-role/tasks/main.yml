@@ -9,7 +9,11 @@
 - name: Include task to create tar file
   include_tasks: sub_tasks/create_tar_file.yml
 
-# - name: Include task to copy tar file to target nodes
-#   include_tasks: sub_tasks/copy_tar.yml
-# - name: Include task to install tools on target nodes
-#   include_tasks: sub_tasks/install_tools.yml
+- name: Include task to copy tar file to target nodes
+  include_tasks: sub_tasks/copy_tar.yml
+
+- name: Include task to extract tar file to remote directory
+  include_tasks: sub_tasks/extract_tar.yml
+
+#- name: Include task to install tools on target nodes
+#  include_tasks: sub_tasks/install_tools.yml
