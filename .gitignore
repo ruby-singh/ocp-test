@@ -1,2 +1,9 @@
 # Ignore HTML files
 *.html
+
+# Ignore macOS files
+.DS_Store
+../.DS_Store
+
+# Ignore build directory
+build/
