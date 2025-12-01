@@ -8,25 +8,8 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ build_dir }}"
-    - "{{ local_download_dir }}"
-    - "{{ local_extract_dir }}"
-    - "{{ local_extract_dir }}/bin"
-    - "{{ local_extract_dir }}/httpd"
-    - "{{ local_extract_dir }}/httpd-tools"
-    - "{{ local_extract_dir }}/firewalld"
-    - "{{ local_extract_dir }}/dnsmasq"
-    - "{{ local_extract_dir }}/git"
-    - "{{ local_extract_dir }}/wget"
-    - "{{ local_extract_dir }}/curl"
-    - "{{ local_extract_dir }}/vim"
-    - "{{ local_extract_dir }}/bind-utils"
-    - "{{ local_extract_dir }}/telnet"
-    - "{{ local_extract_dir }}/buildah"
-    - "{{ local_extract_dir }}/openssl"
-    - "{{ local_extract_dir }}/helm"
-    - "{{ local_extract_dir }}/haproxy"
-    - "{{ local_extract_dir }}/rsync"
+  - "{{ build_dir }}"
+  - "{{ local_download_dir }}"
 
 # ------------------------------
 # 2. Download Podman tarball
@@ -37,6 +20,9 @@
     url: "{{ podman_download_url }}"
     dest: "{{ local_download_dir }}/podman.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: podman_download
 
 # ------------------------------
@@ -48,6 +34,9 @@
     url: "{{ skopeo_download_url }}"
     dest: "{{ local_download_dir }}/skopeo.tar.gz"
     mode: '0644'
+    validate_certs: false
+    timeout: 300
+    force: false
   register: skopeo_download
 
 # ------------------------------
@@ -59,40 +48,75 @@
     url: "{{ httpd_download_url }}"
     dest: "{{ local_download_dir }}/httpd.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: httpd_download
 
 # ------------------------------
 # 5. Download httpd-tools RPM
 # ------------------------------
-# - name: Download httpd-tools RPM on control node
-#   delegate_to: localhost
-#   get_url:
-#     url: "{{ httpd_tools_download_url }}"
-#     dest: "{{ local_download_dir }}/httpd-tools.rpm"
-#     mode: '0644'
-#   register: httpd_tools_download
+- name: Find latest httpd-tools rpm on mirror
+  shell: |
+    curl -s {{ almalinux_appstream_repo_url }} \
+    | grep -oP 'httpd-tools-[^"]+\.rpm' \
+    | sort -V | tail -n 1
+  register: httpd_tools_filename
+
+- name: Download httpd-tools RPM
+  delegate_to: localhost
+  get_url:
+    url: "{{ almalinux_appstream_repo_url }}{{ httpd_tools_filename.stdout }}"
+    dest: "{{ local_download_dir }}/httpd-tools.rpm"
+    mode: '0644'
+    validate_certs: no
 
 # ------------------------------
 # 6. Download firewalld RPM
 # ------------------------------
-# - name: Download firewalld RPM on control node
-#   delegate_to: localhost
-#   get_url:
-#     url: "{{ firewalld_download_url }}"
-#     dest: "{{ local_download_dir }}/firewalld.rpm"
-#     mode: '0644'
-#   register: firewalld_download
+- name: Find latest firewalld rpm on AlmaLinux mirror
+  shell: |
+    curl -s {{ almalinux_baseos_repo_url }} \
+    | grep -oP 'firewalld-[0-9][^"]+\.rpm' \
+    | sort -V | tail -n 1
+  register: firewalld_filename
+  changed_when: false
+
+- name: Download firewalld RPM on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ almalinux_baseos_repo_url }}{{ firewalld_filename.stdout }}"
+    dest: "{{ local_download_dir }}/firewalld.rpm"
+    mode: '0644'
+    validate_certs: false
+    timeout: 600
+    force: false
+  register: firewalld_download
 
 # ------------------------------
 # 7. Download dnsmasq RPM
 # ------------------------------
-# - name: Download dnsmasq RPM on control node
-#   delegate_to: localhost
-#   get_url:
-#     url: "{{ dnsmasq_download_url }}"
-#     dest: "{{ local_download_dir }}/dnsmasq.rpm"
-#     mode: '0644'
-#   register: dnsmasq_download
+- name: Find latest dnsmasq rpm (AlmaLinux 10)
+  shell: |
+    curl -s {{ almalinux_appstream_repo_url }} \
+    | grep -o 'dnsmasq-[0-9A-Za-z._-]*\.rpm' \
+    | sort -V | tail -n 1
+  register: dnsmasq_filename
+  changed_when: false
+
+- name: Debug the filename
+  debug:
+    var: dnsmasq_filename.stdout
+
+- name: Download dnsmasq RPM on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ almalinux_appstream_repo_url }}{{ dnsmasq_filename.stdout }}"
+    dest: "{{ local_download_dir }}/dnsmasq.rpm"
+    mode: '0644'
+    validate_certs: false
+    timeout: 600
+    force: false
 
 # ------------------------------
 # 8. Download git source tarball
@@ -103,6 +127,9 @@
     url: "{{ git_download_url }}"
     dest: "{{ local_download_dir }}/git.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: git_download
 
 # ------------------------------
@@ -114,6 +141,9 @@
     url: "{{ wget_download_url }}"
     dest: "{{ local_download_dir }}/wget.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: wget_download
 
 # ------------------------------
@@ -125,6 +155,9 @@
     url: "{{ curl_download_url }}"
     dest: "{{ local_download_dir }}/curl.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: curl_download
 
 # ------------------------------
@@ -136,18 +169,36 @@
     url: "{{ vim_download_url }}"
     dest: "{{ local_download_dir }}/vim.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: vim_download
 
 # ------------------------------
 # 12. Download bind-utils RPM
 # ------------------------------
-# - name: Download bind-utils RPM on control node
-#   delegate_to: localhost
-#   get_url:
-#     url: "{{ bind_utils_download_url }}"
-#     dest: "{{ local_download_dir }}/bind-utils.rpm"
-#     mode: '0644'
-#   register: bind_utils_download
+- name: Find latest bind-utils rpm (AlmaLinux 10)
+  shell: |
+    curl -s {{ almalinux_baseos_repo_url }} \
+    | grep -o 'bind-utils-[0-9A-Za-z._-]*\.rpm' \
+    | sort -V | tail -n 1
+  register: bindutils_filename
+  changed_when: false
+
+- name: Debug bind-utils filename
+  debug:
+    var: bindutils_filename.stdout
+
+- name: Download bind-utils RPM on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ almalinux_baseos_repo_url }}{{ bindutils_filename.stdout }}"
+    dest: "{{ local_download_dir }}/bind-utils.rpm"
+    mode: '0644'
+    validate_certs: false
+    timeout: 600
+    force: false
+  register: bind_utils_download
 
 # ------------------------------
 # 13. Download telnet RPM
@@ -158,6 +209,9 @@
     url: "{{ telnet_download_url }}"
     dest: "{{ local_download_dir }}/telnet.rpm"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: telnet_download
 
 # ------------------------------
@@ -169,6 +223,9 @@
     url: "{{ jq_download_url }}"
     dest: "{{ local_download_dir }}/jq"
     mode: '0755'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: jq_download
 
 # ------------------------------
@@ -180,6 +237,9 @@
     url: "{{ buildah_download_url }}"
     dest: "{{ local_download_dir }}/buildah.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: buildah_download
 
 # ------------------------------
@@ -191,6 +251,9 @@
     url: "{{ openssl_download_url }}"
     dest: "{{ local_download_dir }}/openssl.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: openssl_download
 
 # ------------------------------
@@ -202,6 +265,9 @@
     url: "{{ helm_download_url }}"
     dest: "{{ local_download_dir }}/helm.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: helm_download
 
 # ------------------------------
@@ -213,6 +279,9 @@
     url: "{{ haproxy_download_url }}"
     dest: "{{ local_download_dir }}/haproxy.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: haproxy_download
 
 # ------------------------------
@@ -224,159 +293,18 @@
     url: "{{ rsync_download_url }}"
     dest: "{{ local_download_dir }}/rsync.tar.gz"
     mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
   register: rsync_download
 
-# ==============================
-# PHASE 2: Extract All Components
-# ==============================
-
 # ------------------------------
-# 8a. Extract Podman tarball
+# 9. Create tarball of all downloads
 # ------------------------------
-- name: Extract Podman tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/podman.tar.gz -C {{ local_extract_dir }}/bin
-
-# ------------------------------
-# 8b. Extract Skopeo source tarball
-# ------------------------------
-- name: Extract Skopeo source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/skopeo.tar.gz -C {{ local_extract_dir }}
-
-# ------------------------------
-# 8c. Extract httpd tarball
-# ------------------------------
-- name: Extract httpd tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/httpd.tar.gz -C {{ local_extract_dir }}/httpd --strip-components=1
-
-# ------------------------------
-# 8d. Extract httpd-tools RPM
-# ------------------------------
-# - name: Extract httpd-tools RPM to staging directory
-#   delegate_to: localhost
-#   shell: |
-#     cd {{ local_extract_dir }}/httpd-tools
-#     rpm2cpio {{ local_download_dir }}/httpd-tools.rpm | cpio -idmv
-
-# ------------------------------
-# 8e. Extract firewalld RPM
-# ------------------------------
-# - name: Extract firewalld RPM to staging directory
-#   delegate_to: localhost
-#   shell: |
-#     cd {{ local_extract_dir }}/firewalld
-#     rpm2cpio {{ local_download_dir }}/firewalld.rpm | cpio -idmv
-
-# ------------------------------
-# 8f. Extract dnsmasq RPM
-# ------------------------------
-# - name: Extract dnsmasq RPM to staging directory
-#   delegate_to: localhost
-#   shell: |
-#     cd {{ local_extract_dir }}/dnsmasq
-#     rpm2cpio {{ local_download_dir }}/dnsmasq.rpm | cpio -idmv
-
-# ------------------------------
-# 8g. Extract git source tarball
-# ------------------------------
-- name: Extract git source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/git.tar.gz -C {{ local_extract_dir }}/git --strip-components=1
-
-# ------------------------------
-# 8h. Extract wget source tarball
-# ------------------------------
-- name: Extract wget source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/wget.tar.gz -C {{ local_extract_dir }}/wget --strip-components=1
-
-# ------------------------------
-# 8i. Extract curl source tarball
-# ------------------------------
-- name: Extract curl source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/curl.tar.gz -C {{ local_extract_dir }}/curl --strip-components=1
-
-# ------------------------------
-# 8j. Extract vim source tarball
-# ------------------------------
-- name: Extract vim source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/vim.tar.gz -C {{ local_extract_dir }}/vim --strip-components=1
-
-# ------------------------------
-# 8k. Extract bind-utils RPM
-# ------------------------------
-# - name: Extract bind-utils RPM to staging directory
-#   delegate_to: localhost
-#   shell: |
-#     cd {{ local_extract_dir }}/bind-utils
-#     rpm2cpio {{ local_download_dir }}/bind-utils.rpm | cpio -idmv
-
-# ------------------------------
-# 8l. Extract telnet RPM
-# ------------------------------
-- name: Extract telnet RPM to staging directory
-  delegate_to: localhost
-  shell: |
-    cd {{ local_extract_dir }}/telnet
-    rpm2cpio {{ local_download_dir }}/telnet.rpm | cpio -idmv
-
-# ------------------------------
-# 8m. Copy jq binary to bin directory
-# ------------------------------
-- name: Copy jq binary to bin directory
-  delegate_to: localhost
-  shell: cp {{ local_download_dir }}/jq {{ local_extract_dir }}/bin/jq
-
-# ------------------------------
-# 8n. Extract buildah source tarball
-# ------------------------------
-- name: Extract buildah source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/buildah.tar.gz -C {{ local_extract_dir }}/buildah --strip-components=1
-
-# ------------------------------
-# 8o. Extract openssl source tarball
-# ------------------------------
-- name: Extract openssl source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/openssl.tar.gz -C {{ local_extract_dir }}/openssl --strip-components=1
-
-# ------------------------------
-# 8p. Extract helm tarball
-# ------------------------------
-- name: Extract helm tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/helm.tar.gz -C {{ local_extract_dir }}/bin --strip-components=1
-
-# ------------------------------
-# 8q. Extract haproxy source tarball
-# ------------------------------
-- name: Extract haproxy source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/haproxy.tar.gz -C {{ local_extract_dir }}/haproxy --strip-components=1
-
-# ------------------------------
-# 8r. Extract rsync source tarball
-# ------------------------------
-- name: Extract rsync source tarball to staging directory
-  delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/rsync.tar.gz -C {{ local_extract_dir }}/rsync --strip-components=1
-
-# ==============================
-# PHASE 3: Create Combined Tarball
-# ==============================
-
-# ------------------------------
-# 9. Create combined tarball
-# ------------------------------
-- name: Create combined tarball with all components
+- name: Create tarball with all downloaded dependencies
   delegate_to: localhost
   archive:
-    path: "{{ local_extract_dir }}/*"
+    path: "{{ local_download_dir }}"
     dest: "{{ local_combined_tar }}"
     format: gz
     mode: '0644'
