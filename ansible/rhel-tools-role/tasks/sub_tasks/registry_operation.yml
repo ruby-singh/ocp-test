@@ -1,0 +1,24 @@
+# ---------------------------------------------
+# Pull image with Podman, save, transfer, load, run
+# ---------------------------------------------
+- name: Pull example image on build machine
+  command: podman pull {{ registry_image_name }}
+  delegate_to: localhost
+  run_once: true
+
+- name: Save image as tar archive
+  command: podman save -o {{ registry_image_source_path }} {{ registry_image_name }}
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy image tarball to offline server
+  copy:
+    src: "{{ registry_image_source_path }}"
+    dest: "{{ registry_image_dest_path }}"
+    mode: '0644'
+
+- name: Load image on offline server
+  command: podman load -i {{ registry_image_dest_path }}
+
+- name: Run container on offline server
+  command: podman run -d --name nginx-offline -p 8080:80 {{ registry_image_name | regex_replace('^docker.io/library/', '') }}

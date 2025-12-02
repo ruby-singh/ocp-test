@@ -40,6 +40,11 @@ remote_install_temp: "/tmp/tools_extracted"
 install_dir: "/usr/local/bin"
 httpd_install_dir: "/opt/httpd"
 
+# Registry operation paths
+registry_image_source_path: "/tmp/nginx-image.tar"
+registry_image_dest_path: "/tmp/nginx-image.tar"
+registry_image_name: "docker.io/library/nginx:latest"
+
 # List of binaries to verify
 binaries_to_check:
 - podman
