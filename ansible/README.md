@@ -56,73 +56,47 @@ ansible/
 ### 1. Run Complete Workflow (All Tasks)
 
 ```bash
-cd /Users/ruby/Desktop/Code/ocp-test/ansible && ansible-playbook playbooks/rhel-tools-playbook.yml -v
+ansible-playbook playbooks/rhel-tools-playbook.yml -v
 ```
 
-Runs all tasks: download → create tar → copy → extract → test
+Runs all tasks: download → create tar → copy → extract
 
 ---
 
-### 2. Run Only Tests (Using Tags)
+### 2. Test Downloaded and Extracted Tools
 
 ```bash
-cd /Users/ruby/Desktop/Code/ocp-test/ansible && ansible-playbook playbooks/rhel-tools-playbook.yml --tags test -v
+ansible-playbook playbooks/test-installed-tools.yml
 ```
 
-Runs only test validation tasks. **Note:** Requires build folder and files to already exist from running the full playbook first.
-
----
-
-### 3. Run Standalone Test Playbook
-
-```bash
-cd /Users/ruby/Desktop/Code/ocp-test/ansible && ansible-playbook playbooks/test-tar-operations.yml -v
-```
-
-Alternative way to run only tests with inline variables.
+**Independent test** that checks what tools are downloaded and extracted in the build folder. Shows:
+- ✓ Downloaded files with size and version
+- ✗ Missing downloads with error messages
+- ✓ Extracted directories
+- ✗ Missing extracts with error messages
+- Summary with tool versions
 
 ---
 
 ## Test Coverage
 
-The test suite validates:
+The test suite (test-installed-tools.yml) validates:
 
-### ✅ Test 1-2: Tar File Creation & Copy
-- Combined tar file exists on control node
-- Tar file copied to `/tmp/tools_download.tar.gz`
-- File sizes match between local and remote
+### ✅ Downloaded Files
+- Checks all downloaded files in `build/tools_download/`
+- Reports file size in MB
+- Extracts and displays version numbers
+- Lists missing downloads with error messages
 
-### ✅ Test 3-4: Extraction Validation
-- Extraction directory exists at `build/tools_extract/`
-- Critical binaries extracted (podman, jq, helm)
-- Source directories extracted (httpd, git, curl, etc.)
+### ✅ Extracted Directories
+- Verifies extracted directories in `build/tools_extract/`
+- Checks bin/, httpd/, git/, curl/, vim/, openssl/, etc.
+- Lists missing extracts with error messages
 
-### ✅ Test 5: Tar Integrity
-- Tar file can be read without corruption
-- Archive contains files (not empty)
-
-### ✅ Test 6: Downloaded Files Validation
-- All files are valid gzip archives or binaries
-- Files are not corrupt (proper file types)
-- Files meet minimum size requirements
-
-### ✅ Test 7: Extracted Files Integrity
-- All source directories present
-- RPM extraction directories exist
-- Warns if RPM directories are empty
-
-### ✅ Test 8: Version Detection
-- Extracts version numbers from URLs
-- Displays versions for all tools
-- Validates version format
-
-### ✅ Test 9: Archive Contents
-- Counts files in each tarball
-- Verifies tarballs contain expected data
-
-### ✅ Test 10: Checksums
-- Generates SHA256 checksums for verification
-- Useful for supply chain validation
+### ✅ Summary Report
+- Total count of downloaded vs missing files
+- Total count of extracted vs missing directories
+- Complete version information for all tools (Podman 5.3.1, Httpd 2.4.65, etc.)
 
 ---
 

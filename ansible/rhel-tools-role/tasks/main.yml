@@ -15,9 +15,5 @@
 - name: Include task to extract tar file to remote directory
   include_tasks: sub_tasks/extract_tar.yml
 
-- name: Include task to test tar operations
-  include_tasks: sub_tasks/test_tar_operations.yml
-  tags: test
-
 #- name: Include task to install tools on target nodes
 #  include_tasks: sub_tasks/install_tools.yml

@@ -1,0 +1,311 @@
+---
+# Test Downloaded and Extracted Tools
+# This playbook checks what tools are in the build folder (downloaded and extracted)
+# Independent of system installation - tests build folder contents
+
+- hosts: localhost
+  vars:
+    # Project directories
+    project_root: "{{ playbook_dir | dirname }}"
+    build_dir: "{{ project_root }}/build"
+    local_download_dir: "{{ build_dir }}/tools_download"
+    local_extract_dir: "{{ build_dir }}/tools_extract"
+
+    # Download URLs for version detection
+    podman_download_url: "https://github.com/containers/podman/releases/download/v5.3.1/podman-remote-static-linux_amd64.tar.gz"
+    httpd_download_url: "https://dlcdn.apache.org/httpd/httpd-2.4.65.tar.gz"
+    git_download_url: "https://www.kernel.org/pub/software/scm/git/git-2.9.5.tar.gz"
+    wget_download_url: "https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz"
+    curl_download_url: "https://curl.se/download/curl-8.17.0.tar.gz"
+    vim_download_url: "https://anduin.linuxfromscratch.org/LFS/vim-9.0.1677.tar.gz"
+    openssl_download_url: "https://www.openssl.org/source/openssl-3.4.0.tar.gz"
+    helm_download_url: "https://get.helm.sh/helm-v3.16.3-linux-amd64.tar.gz"
+    haproxy_download_url: "https://www.haproxy.org/download/3.1/src/haproxy-3.1.0.tar.gz"
+    rsync_download_url: "https://download.samba.org/pub/rsync/src/rsync-3.4.1.tar.gz"
+
+    # Files to check in download directory
+    download_files:
+      - name: podman
+        file: podman.tar.gz
+        url: "{{ podman_download_url }}"
+      - name: skopeo
+        file: skopeo.tar.gz
+        url: "https://github.com/containers/skopeo/archive/refs/tags/v1.17.0.tar.gz"
+      - name: httpd
+        file: httpd.tar.gz
+        url: "{{ httpd_download_url }}"
+      - name: httpd-tools
+        file: httpd-tools.rpm
+        url: ""
+      - name: firewalld
+        file: firewalld.rpm
+        url: ""
+      - name: dnsmasq
+        file: dnsmasq.rpm
+        url: ""
+      - name: git
+        file: git.tar.gz
+        url: "{{ git_download_url }}"
+      - name: wget
+        file: wget.tar.gz
+        url: "{{ wget_download_url }}"
+      - name: curl
+        file: curl.tar.gz
+        url: "{{ curl_download_url }}"
+      - name: vim
+        file: vim.tar.gz
+        url: "{{ vim_download_url }}"
+      - name: bind-utils
+        file: bind-utils.rpm
+        url: ""
+      - name: jq
+        file: jq
+        url: "https://github.com/stedolan/jq/releases/download/jq-1.7/jq-linux64"
+      - name: buildah
+        file: buildah.tar.gz
+        url: "https://github.com/containers/buildah/archive/refs/tags/v1.41.0.tar.gz"
+      - name: openssl
+        file: openssl.tar.gz
+        url: "{{ openssl_download_url }}"
+      - name: helm
+        file: helm.tar.gz
+        url: "{{ helm_download_url }}"
+      - name: haproxy
+        file: haproxy.tar.gz
+        url: "{{ haproxy_download_url }}"
+      - name: rsync
+        file: rsync.tar.gz
+        url: "{{ rsync_download_url }}"
+
+    # Items to check in extract directory (maps 1:1 with downloads)
+    extract_items:
+      - name: podman
+        path: bin
+        type: dir
+      - name: skopeo
+        path: skopeo-1.17.0
+        type: dir
+      - name: httpd
+        path: httpd
+        type: dir
+      - name: httpd-tools
+        path: httpd-tools
+        type: dir
+      - name: firewalld
+        path: firewalld
+        type: dir
+      - name: dnsmasq
+        path: dnsmasq
+        type: dir
+      - name: git
+        path: git
+        type: dir
+      - name: wget
+        path: wget
+        type: dir
+      - name: curl
+        path: curl
+        type: dir
+      - name: vim
+        path: vim
+        type: dir
+      - name: bind-utils
+        path: bind-utils
+        type: dir
+      - name: jq
+        path: bin
+        type: dir
+      - name: buildah
+        path: buildah
+        type: dir
+      - name: openssl
+        path: openssl
+        type: dir
+      - name: helm
+        path: bin
+        type: dir
+      - name: haproxy
+        path: haproxy
+        type: dir
+      - name: rsync
+        path: rsync
+        type: dir
+
+  tasks:
+    # Check Build Directory Exists
+    - name: Check if build directory exists
+      stat:
+        path: "{{ build_dir }}"
+      register: build_dir_stat
+
+    - name: Check if download directory exists
+      stat:
+        path: "{{ local_download_dir }}"
+      register: download_dir_stat
+      when: build_dir_stat.stat.exists
+
+    - name: Check if extract directory exists
+      stat:
+        path: "{{ local_extract_dir }}"
+      register: extract_dir_stat
+      when: build_dir_stat.stat.exists
+
+    # Test Downloaded Files
+    - name: Check downloaded files
+      stat:
+        path: "{{ local_download_dir }}/{{ item.file }}"
+      loop: "{{ download_files }}"
+      register: download_checks
+      when: download_dir_stat.stat.exists | default(false)
+
+    - name: Initialize download results
+      set_fact:
+        downloaded_tools: []
+        missing_downloads: []
+
+    - name: Process downloaded files
+      set_fact:
+        downloaded_tools: "{{ downloaded_tools + [{ 'name': item.item.name, 'file': item.item.file, 'size': (item.stat.size / 1024 / 1024) | round(2), 'version': (item.item.url | regex_search('[0-9]+\\.[0-9]+\\.[0-9]+') | default('N/A')) }] }}"
+      when:
+        - download_checks is defined
+        - download_checks.results is defined
+        - item.stat.exists | default(false)
+      loop: "{{ download_checks.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Collect missing downloads
+      set_fact:
+        missing_downloads: "{{ missing_downloads + [item.item.name] }}"
+      when:
+        - download_checks is defined
+        - download_checks.results is defined
+        - not (item.stat.exists | default(false))
+      loop: "{{ download_checks.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    # Add all tools to missing if download dir doesn't exist
+    - name: Mark all as missing if download directory doesn't exist
+      set_fact:
+        missing_downloads: "{{ download_files | map(attribute='name') | list }}"
+      when: not (download_dir_stat.stat.exists | default(false))
+
+    # Test Extracted Items
+    - name: Check extracted items
+      stat:
+        path: "{{ local_extract_dir }}/{{ item.path }}"
+      loop: "{{ extract_items }}"
+      register: extract_checks
+      when: extract_dir_stat.stat.exists | default(false)
+
+    - name: Initialize extract results
+      set_fact:
+        extracted_items: []
+        missing_extracts: []
+
+    - name: Process extracted items
+      set_fact:
+        extracted_items: "{{ extracted_items + [item.item.name] }}"
+      when:
+        - extract_checks is defined
+        - extract_checks.results is defined
+        - item.stat.exists | default(false)
+        - item.stat.isdir | default(false)
+      loop: "{{ extract_checks.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Collect missing extracts
+      set_fact:
+        missing_extracts: "{{ missing_extracts + [item.item.name] }}"
+      when:
+        - extract_checks is defined
+        - extract_checks.results is defined
+        - not (item.stat.exists | default(false) and item.stat.isdir | default(false))
+      loop: "{{ extract_checks.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    # Add all to missing if extract dir doesn't exist
+    - name: Mark all as missing if extract directory doesn't exist
+      set_fact:
+        missing_extracts: "{{ extract_items | map(attribute='name') | list }}"
+      when: not (extract_dir_stat.stat.exists | default(false))
+
+    # Display Results
+    - name: Display test header
+      debug:
+        msg:
+          - "=========================================="
+          - "  DOWNLOADED & EXTRACTED TOOLS REPORT"
+          - "=========================================="
+
+    - name: Display download status
+      debug:
+        msg:
+          - ""
+          - "========== DOWNLOADED FILES =========="
+
+    - name: Display downloaded files
+      debug:
+        msg: "✓ {{ item.name | upper }}: {{ item.file }} ({{ item.size }} MB) - v{{ item.version }}"
+      loop: "{{ downloaded_tools }}"
+      when: downloaded_tools | length > 0
+
+    - name: Display missing downloads
+      debug:
+        msg: "✗ {{ item | upper }}: ERROR - Not found in {{ local_download_dir }}"
+      loop: "{{ missing_downloads }}"
+      when: missing_downloads | length > 0
+
+    - name: Display extract status
+      debug:
+        msg:
+          - ""
+          - "========== EXTRACTED ITEMS =========="
+
+    - name: Display extracted items
+      debug:
+        msg: "✓ {{ item | upper }}: Found in {{ local_extract_dir }}"
+      loop: "{{ extracted_items }}"
+      when: extracted_items | length > 0
+
+    - name: Display missing extracts
+      debug:
+        msg: "✗ {{ item | upper }}: ERROR - Not found in {{ local_extract_dir }}"
+      loop: "{{ missing_extracts }}"
+      when: missing_extracts | length > 0
+
+    - name: Display summary
+      debug:
+        msg:
+          - ""
+          - "=========================================="
+          - "SUMMARY:"
+          - ""
+          - "DOWNLOADS:"
+          - "  ✓ Downloaded: {{ downloaded_tools | length }}"
+          - "  ✗ Missing: {{ missing_downloads | length }}{% if missing_downloads | length > 0 %} ({{ missing_downloads | join(', ') }}){% endif %}"
+          - "  Total: {{ download_files | length }}"
+          - ""
+          - "EXTRACTS:"
+          - "  ✓ Extracted: {{ extracted_items | length }}"
+          - "  ✗ Missing: {{ missing_extracts | length }}{% if missing_extracts | length > 0 %} ({{ missing_extracts | join(', ') }}){% endif %}"
+          - "  Total: {{ extract_items | length }}"
+          - ""
+          - "VERSIONS:"
+          - "  Podman: v5.3.1"
+          - "  Skopeo: v1.17.0"
+          - "  Httpd: v2.4.65"
+          - "  Git: v2.9.5"
+          - "  Wget: v1.25.0"
+          - "  Curl: v8.17.0"
+          - "  Vim: v9.0.1677"
+          - "  JQ: v1.7"
+          - "  Buildah: v1.41.0"
+          - "  OpenSSL: v3.4.0"
+          - "  Helm: v3.16.3"
+          - "  HAProxy: v3.1.0"
+          - "  Rsync: v3.4.1"
+          - "=========================================="
