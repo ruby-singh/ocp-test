@@ -63,18 +63,16 @@ Runs all tasks: download → create tar → copy → extract
 
 ---
 
-### 2. Test Downloaded and Extracted Tools
+### 2. Test System-Installed Tools
 
 ```bash
 ansible-playbook playbooks/test-installed-tools.yml
 ```
 
-**Independent test** that checks what tools are downloaded and extracted in the build folder. Shows:
-- ✓ Downloaded files with size and version
-- ✗ Missing downloads with error messages
-- ✓ Extracted directories
-- ✗ Missing extracts with error messages
-- Summary with tool versions
+**Independent test** that checks which tools from `binaries_to_check` are installed on the system. Shows:
+- ✓ Installed tools with their versions
+- ✗ Missing tools not found on system
+- Summary statistics
 
 ---
 
@@ -82,21 +80,16 @@ ansible-playbook playbooks/test-installed-tools.yml
 
 The test suite (test-installed-tools.yml) validates:
 
-### ✅ Downloaded Files
-- Checks all downloaded files in `build/tools_download/`
-- Reports file size in MB
-- Extracts and displays version numbers
-- Lists missing downloads with error messages
-
-### ✅ Extracted Directories
-- Verifies extracted directories in `build/tools_extract/`
-- Checks bin/, httpd/, git/, curl/, vim/, openssl/, etc.
-- Lists missing extracts with error messages
+### ✅ System-Installed Binaries
+- Checks all binaries listed in `binaries_to_check` (vars/main.yml)
+- Detects installed tools and extracts version information
+- Lists missing tools not found on system path
+- Works independently of build folder - tests actual system installation
 
 ### ✅ Summary Report
-- Total count of downloaded vs missing files
-- Total count of extracted vs missing directories
-- Complete version information for all tools (Podman 5.3.1, Httpd 2.4.65, etc.)
+- Total count of installed vs missing binaries
+- Lists all missing tool names for quick reference
+- Displays version output for each installed tool
 
 ---
 
