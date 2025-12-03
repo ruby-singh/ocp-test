@@ -33,11 +33,11 @@
       chmod +x {{ install_dir }}/*
 
   # ------------------------------
-  # 14. Install Skopeo
+  # 14. Install Skopeo RPM
   # ------------------------------
-  - name: Install Skopeo RPM offline (install all skopeo-*.rpm)
+  - name: Install Skopeo RPM offline
     shell: |
-      sudo rpm -ivh --nodeps {{ remote_install_temp }}/skopeo-*.rpm
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/skopeo/skopeo*.rpm
     args:
       warn: false
     when: skopeo_download.changed
@@ -110,14 +110,13 @@
     when: wget_download.changed
 
   # ------------------------------
-  # 15f. Compile and install curl
+  # 15f. Install curl RPM
   # ------------------------------
-  - name: Configure, compile and install curl
+  - name: Install curl RPM offline
     shell: |
-      cd {{ remote_install_temp }}/curl
-      ./configure --prefix={{ install_dir }} --with-ssl
-      make
-      make install
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/curl/curl*.rpm
+    args:
+      warn: false
     when: curl_download.changed
 
   # ------------------------------

@@ -26,13 +26,13 @@
   register: podman_download
 
 # ------------------------------
-# 3. Download Skopeo tarball
+# 3. Download Skopeo RPM
 # ------------------------------
-- name: Download Skopeo source tarball on control node
+- name: Download Skopeo RPM on control node
   delegate_to: localhost
   get_url:
     url: "{{ skopeo_download_url }}"
-    dest: "{{ local_download_dir }}/skopeo.tar.gz"
+    dest: "{{ local_download_dir }}/skopeo.rpm"
     mode: '0644'
     validate_certs: false
     timeout: 300
@@ -149,13 +149,13 @@
   register: wget_download
 
 # ------------------------------
-# 10. Download curl source tarball
+# 10. Download curl RPM
 # ------------------------------
-- name: Download curl source tarball on control node
+- name: Download curl RPM on control node
   delegate_to: localhost
   get_url:
     url: "{{ curl_download_url }}"
-    dest: "{{ local_download_dir }}/curl.tar.gz"
+    dest: "{{ local_download_dir }}/curl.rpm"
     mode: '0644'
     validate_certs: false
     force: false

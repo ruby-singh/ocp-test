@@ -41,11 +41,11 @@
   shell: tar -xzf {{ local_download_dir }}/podman.tar.gz -C {{ local_extract_dir }}/bin
 
 # ------------------------------
-# 8b. Extract Skopeo source tarball
+# 8b. Copy Skopeo RPM
 # ------------------------------
-- name: Extract Skopeo source tarball to staging directory
+- name: Copy Skopeo RPM to staging directory
   delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/skopeo.tar.gz -C {{ local_extract_dir }}/skopeo --strip-components=1
+  shell: cp {{ local_download_dir }}/skopeo.rpm {{ local_extract_dir }}/skopeo/
 
 # ------------------------------
 # 8c. Extract httpd tarball
@@ -96,11 +96,11 @@
   shell: tar -xzf {{ local_download_dir }}/wget.tar.gz -C {{ local_extract_dir }}/wget --strip-components=1
 
 # ------------------------------
-# 8i. Extract curl source tarball
+# 8i. Copy curl RPM
 # ------------------------------
-- name: Extract curl source tarball to staging directory
+- name: Copy curl RPM to staging directory
   delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/curl.tar.gz -C {{ local_extract_dir }}/curl --strip-components=1
+  shell: cp {{ local_download_dir }}/curl.rpm {{ local_extract_dir }}/curl/
 
 # ------------------------------
 # 8j. Extract vim source tarball
