@@ -121,13 +121,13 @@
     force: false
 
 # ------------------------------
-# 8. Download git source tarball
+# 8. Download git RPM
 # ------------------------------
-- name: Download git source tarball on control node
+- name: Download git RPM on control node
   delegate_to: localhost
   get_url:
     url: "{{ git_download_url }}"
-    dest: "{{ local_download_dir }}/git.tar.gz"
+    dest: "{{ local_download_dir }}/git.rpm"
     mode: '0644'
     validate_certs: false
     force: false

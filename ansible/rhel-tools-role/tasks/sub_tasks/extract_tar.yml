@@ -82,11 +82,11 @@
     rpm2cpio {{ local_download_dir }}/dnsmasq.rpm | cpio -idmv
 
 # ------------------------------
-# 8g. Extract git source tarball
+# 8g. Copy git RPM
 # ------------------------------
-- name: Extract git source tarball to staging directory
+- name: Copy git RPM to staging directory
   delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/git.tar.gz -C {{ local_extract_dir }}/git --strip-components=1
+  shell: cp {{ local_download_dir }}/git.rpm {{ local_extract_dir }}/git/
 
 # ------------------------------
 # 8h. Extract wget source tarball

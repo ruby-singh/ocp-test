@@ -89,15 +89,13 @@
     when: dnsmasq_bins.stdout_lines | length > 0
 
   # ------------------------------
-  # 15d. Compile and install git
+  # 15d. Install git RPM (offline, no repo scan)
   # ------------------------------
-  - name: Configure, compile and install git
+  - name: Install git RPM offline
     shell: |
-      cd {{ remote_install_temp }}/git
-      make configure
-      ./configure --prefix={{ install_dir }}
-      make all
-      make install
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/git/git*.rpm
+    args:
+      warn: false
     when: git_download.changed
 
   # ------------------------------

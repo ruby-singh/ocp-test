@@ -13,7 +13,7 @@ httpd_download_url: "https://pkgs.sysadmins.ws/el8/modular/x86_64/httpd/httpd-2.
 almalinux_baseos_repo_url: "https://repo.almalinux.org/almalinux/10.0/BaseOS/x86_64/os/Packages/"
 almalinux_appstream_repo_url: "https://repo.almalinux.org/almalinux/10.0/AppStream/x86_64/os/Packages/"
 
-git_download_url: "https://www.kernel.org/pub/software/scm/git/git-2.9.5.tar.gz"
+git_download_url: "https://rpmfind.net/linux/opensuse/ports/aarch64/tumbleweed/repo/oss/aarch64/git-2.52.0-1.1.aarch64.rpm"
 wget_download_url: "https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz"
 curl_download_url: "https://curl.se/download/curl-8.17.0.tar.gz"
 vim_download_url: "https://anduin.linuxfromscratch.org/LFS/vim-9.0.1677.tar.gz"
