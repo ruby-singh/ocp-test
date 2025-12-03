@@ -222,6 +222,15 @@
     when: rsync_download.changed
 
   # ------------------------------
+  # 15p. Install OC client binaries
+  # ------------------------------
+  - name: Install oc binary
+    shell: |
+      cd {{ remote_install_temp }}/oc
+      install -m 0755 ./oc /usr/local/bin/oc
+    when: oc_download.changed
+
+  # ------------------------------
   # 16. Install httpd RPM (auto-detect version)
   # ------------------------------
   - name: Install httpd RPM (any version matching httpd-2*.rpm)

@@ -29,6 +29,7 @@
   - "{{ local_extract_dir }}/helm"
   - "{{ local_extract_dir }}/haproxy"
   - "{{ local_extract_dir }}/rsync"
+  - "{{ local_extract_dir }}/oc"
 
 # ------------------------------
 # 8a. Extract Podman tarball
@@ -165,6 +166,13 @@
 - name: Extract rsync source tarball to staging directory
   delegate_to: localhost
   shell: tar -xzf {{ local_download_dir }}/rsync.tar.gz -C {{ local_extract_dir }}/rsync --strip-components=1
+
+# ------------------------------
+# 8s. Extract OC client tarball
+# ------------------------------
+- name: Extract OC client tarball to oc directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/oc.tar.gz -C {{ local_extract_dir }}/oc
 
 # ==============================
 # PHASE 3: Create Combined Tarball

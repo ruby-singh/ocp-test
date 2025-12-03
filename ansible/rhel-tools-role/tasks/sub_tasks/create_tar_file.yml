@@ -301,7 +301,21 @@
   register: rsync_download
 
 # ------------------------------
-# 20. Create tarball of all downloads
+# 20. Download OC client tarball
+# ------------------------------
+- name: Download OC client tarball on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ oc_client_download_url }}"
+    dest: "{{ local_download_dir }}/oc.tar.gz"
+    mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
+  register: oc_download
+
+# ------------------------------
+# 21. Create tarball of all downloads
 # ------------------------------
 - name: Create tarball with all downloaded dependencies
   delegate_to: localhost
@@ -313,7 +327,7 @@
   register: combined_tar
 
 # ------------------------------
-# 21. Display tarball information
+# 22. Display tarball information
 # ------------------------------
 - name: Get combined tarball stats
   delegate_to: localhost
