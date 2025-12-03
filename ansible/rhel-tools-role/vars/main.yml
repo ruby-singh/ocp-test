@@ -21,7 +21,7 @@ telnet_download_url: "https://ftp.gnu.org/gnu/inetutils/inetutils-1.9.4.tar.xz"
 jq_download_url: "https://github.com/stedolan/jq/releases/download/jq-1.7/jq-linux64"
 buildah_download_url: "https://github.com/containers/buildah/archive/refs/tags/v1.41.0.tar.gz"
 openssl_download_url: "https://www.openssl.org/source/openssl-3.4.0.tar.gz"
-helm_download_url: "https://get.helm.sh/helm-v3.16.3-linux-amd64.tar.gz"
+helm_download_url: "https://get.helm.sh/helm-v4.0.0-linux-amd64.tar.gz"
 haproxy_download_url: "https://www.haproxy.org/download/3.1/src/haproxy-3.1.0.tar.gz"
 rsync_download_url: "https://download.samba.org/pub/rsync/src/rsync-3.4.1.tar.gz"
 

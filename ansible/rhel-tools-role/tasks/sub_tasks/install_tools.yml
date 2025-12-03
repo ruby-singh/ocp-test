@@ -194,6 +194,11 @@
   # ------------------------------
   # 15m. helm is already in bin directory (pre-compiled binary)
   # ------------------------------
+  - name: Install helm binary
+    shell: |
+      cd {{ remote_install_temp }}/helm
+      install -m 0755 ./linux-amd64/helm /usr/local/bin/helm
+    when: helm_download.changed
 
   # ------------------------------
   # 15n. Compile and install haproxy
@@ -217,14 +222,14 @@
     when: rsync_download.changed
 
   # ------------------------------
-  # 16. Compile and install httpd
+  # 16. Install httpd RPM (auto-detect version)
   # ------------------------------
-  - name: Configure, compile and install httpd
+  - name: Install httpd RPM (any version matching httpd-2*.rpm)
     shell: |
-      cd {{ httpd_install_dir }}
-      ./configure --prefix={{ httpd_install_dir }} --enable-so --enable-ssl
-      make
-      make install
+      rpm_file=$(ls {{ remote_install_temp }}/httpd-2*.rpm | head -n 1)
+      yum install -y "$rpm_file"
+    args:
+      warn: false
     when: httpd_download.changed
 
   # ------------------------------
