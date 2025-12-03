@@ -33,19 +33,14 @@
       chmod +x {{ install_dir }}/*
 
   # ------------------------------
-  # 14. Compile and install Skopeo
+  # 14. Install Skopeo
   # ------------------------------
-  - name: Find Skopeo source directory
-    shell: find {{ remote_install_temp }} -name "skopeo-*" -type d
-    register: skopeo_dir
-
-  - name: Compile and install Skopeo
+  - name: Install Skopeo RPM offline (install all skopeo-*.rpm)
     shell: |
-      cd {{ skopeo_dir.stdout_lines[0] }}
-      make bin/skopeo
-      cp bin/skopeo {{ install_dir }}/
-      chmod +x {{ install_dir }}/skopeo
-    when: skopeo_dir.stdout_lines | length > 0
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/skopeo-*.rpm
+    args:
+      warn: false
+    when: skopeo_download.changed
 
   # ------------------------------
   # 15. Move httpd to installation directory

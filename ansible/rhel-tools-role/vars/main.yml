@@ -6,7 +6,7 @@
 # NOTE: GitHub release URLs with JWT tokens expire. Get fresh URLs from:
 # Podman: https://github.com/containers/podman/releases (look for podman-remote-static-linux_amd64.tar.gz)
 podman_download_url: "https://github.com/containers/podman/releases/download/v5.3.1/podman-remote-static-linux_amd64.tar.gz"
-skopeo_download_url: "https://github.com/containers/skopeo/archive/refs/tags/v1.17.0.tar.gz"
+skopeo_download_url: "https://www.rpmfind.net/linux/openmandriva/cooker/repository/aarch64/extra/release/skopeo-1.17.0-1-omv2490.aarch64.rpm"
 httpd_download_url: "https://pkgs.sysadmins.ws/el8/modular/x86_64/httpd/httpd-2.4.65-1.el8.x86_64.rpm"
 
 # AlmaLinux repository base URLs for dynamic package lookup

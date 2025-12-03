@@ -19,6 +19,7 @@
   - "{{ local_extract_dir }}/firewalld"
   - "{{ local_extract_dir }}/dnsmasq"
   - "{{ local_extract_dir }}/git"
+  - "{{ local_extract_dir }}/skopeo"
   - "{{ local_extract_dir }}/wget"
   - "{{ local_extract_dir }}/curl"
   - "{{ local_extract_dir }}/vim"
@@ -43,7 +44,7 @@
 # ------------------------------
 - name: Extract Skopeo source tarball to staging directory
   delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/skopeo.tar.gz -C {{ local_extract_dir }}
+  shell: tar -xzf {{ local_download_dir }}/skopeo.tar.gz -C {{ local_extract_dir }}/skopeo --strip-components=1
 
 # ------------------------------
 # 8c. Extract httpd tarball
