@@ -135,13 +135,13 @@
   register: git_download
 
 # ------------------------------
-# 9. Download wget source tarball
+# 9. Download wget RPM
 # ------------------------------
-- name: Download wget source tarball on control node
+- name: Download wget RPM on control node
   delegate_to: localhost
   get_url:
     url: "{{ wget_download_url }}"
-    dest: "{{ local_download_dir }}/wget.tar.gz"
+    dest: "{{ local_download_dir }}/wget.rpm"
     mode: '0644'
     validate_certs: false
     force: false

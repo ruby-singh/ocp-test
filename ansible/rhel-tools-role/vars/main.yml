@@ -14,7 +14,7 @@ almalinux_baseos_repo_url: "https://repo.almalinux.org/almalinux/10.0/BaseOS/x86
 almalinux_appstream_repo_url: "https://repo.almalinux.org/almalinux/10.0/AppStream/x86_64/os/Packages/"
 
 git_download_url: "https://rpmfind.net/linux/opensuse/ports/aarch64/tumbleweed/repo/oss/aarch64/git-2.52.0-1.1.aarch64.rpm"
-wget_download_url: "https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz"
+wget_download_url: "https://www.rpmfind.net/linux/opensuse/distribution/leap/16.0/repo/oss/aarch64/wget-1.25.0-160000.2.2.aarch64.rpm"
 curl_download_url: "https://rpmfind.net/linux/fedora/linux/development/rawhide/Everything/x86_64/os/Packages/c/curl-8.17.0-3.fc44.x86_64.rpm"
 vim_download_url: "https://anduin.linuxfromscratch.org/LFS/vim-9.0.1677.tar.gz"
 telnet_download_url: "https://ftp.gnu.org/gnu/inetutils/inetutils-1.9.4.tar.xz"

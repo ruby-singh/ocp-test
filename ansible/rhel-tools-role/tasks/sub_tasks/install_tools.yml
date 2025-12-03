@@ -99,14 +99,13 @@
     when: git_download.changed
 
   # ------------------------------
-  # 15e. Compile and install wget
+  # 15e. Install wget RPM
   # ------------------------------
-  - name: Configure, compile and install wget
+  - name: Install wget RPM offline
     shell: |
-      cd {{ remote_install_temp }}/wget
-      ./configure --prefix={{ install_dir }} --with-ssl=openssl
-      make
-      make install
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/wget/wget*.rpm
+    args:
+      warn: false
     when: wget_download.changed
 
   # ------------------------------

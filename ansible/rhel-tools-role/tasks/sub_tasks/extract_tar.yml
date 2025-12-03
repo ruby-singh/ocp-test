@@ -89,11 +89,11 @@
   shell: cp {{ local_download_dir }}/git.rpm {{ local_extract_dir }}/git/
 
 # ------------------------------
-# 8h. Extract wget source tarball
+# 8h. Copy wget RPM
 # ------------------------------
-- name: Extract wget source tarball to staging directory
+- name: Copy wget RPM to staging directory
   delegate_to: localhost
-  shell: tar -xzf {{ local_download_dir }}/wget.tar.gz -C {{ local_extract_dir }}/wget --strip-components=1
+  shell: cp {{ local_download_dir }}/wget.rpm {{ local_extract_dir }}/wget/
 
 # ------------------------------
 # 8i. Copy curl RPM
