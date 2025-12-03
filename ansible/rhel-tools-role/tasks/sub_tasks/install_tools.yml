@@ -223,7 +223,17 @@
     shell: |
       cd {{ remote_install_temp }}/oc
       install -m 0755 ./oc /usr/local/bin/oc
+      install -m 0755 ./kubectl /usr/local/bin/kubectl
     when: oc_download.changed
+
+  # ------------------------------
+  # 15q. Install CPD-CLI binary
+  # ------------------------------
+  - name: Install cpd-cli binary
+    shell: |
+      cd {{ remote_install_temp }}/cpd-cli
+      install -m 0755 ./cpd-cli /usr/local/bin/cpd-cli
+    when: cpd_cli_download.changed
 
   # ------------------------------
   # 16. Install httpd RPM (auto-detect version)

@@ -315,7 +315,21 @@
   register: oc_download
 
 # ------------------------------
-# 21. Create tarball of all downloads
+# 21. Download CPD-CLI tarball
+# ------------------------------
+- name: Download CPD-CLI tarball on control node
+  delegate_to: localhost
+  get_url:
+    url: "{{ cpd_cli_download_url }}"
+    dest: "{{ local_download_dir }}/cpd-cli.tgz"
+    mode: '0644'
+    validate_certs: false
+    force: false
+    timeout: 300
+  register: cpd_cli_download
+
+# ------------------------------
+# 22. Create tarball of all downloads
 # ------------------------------
 - name: Create tarball with all downloaded dependencies
   delegate_to: localhost
@@ -327,7 +341,7 @@
   register: combined_tar
 
 # ------------------------------
-# 22. Display tarball information
+# 23. Display tarball information
 # ------------------------------
 - name: Get combined tarball stats
   delegate_to: localhost

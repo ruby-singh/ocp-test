@@ -31,6 +31,7 @@
   - "{{ local_extract_dir }}/haproxy"
   - "{{ local_extract_dir }}/rsync"
   - "{{ local_extract_dir }}/oc"
+  - "{{ local_extract_dir }}/cpd-cli"
 
 # ------------------------------
 # 8a. Extract Podman tarball
@@ -174,6 +175,13 @@
 - name: Extract OC client tarball to oc directory
   delegate_to: localhost
   shell: tar -xzf {{ local_download_dir }}/oc.tar.gz -C {{ local_extract_dir }}/oc
+
+# ------------------------------
+# 8t. Extract CPD-CLI tarball
+# ------------------------------
+- name: Extract CPD-CLI tarball to cpd-cli directory
+  delegate_to: localhost
+  shell: tar -xzf {{ local_download_dir }}/cpd-cli.tgz -C {{ local_extract_dir }}/cpd-cli
 
 # ==============================
 # PHASE 3: Create Combined Tarball
