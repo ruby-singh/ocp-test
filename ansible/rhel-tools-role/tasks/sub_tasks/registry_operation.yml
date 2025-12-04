@@ -23,6 +23,12 @@
     msg: "Control node 'podman image exists {{ registry_image }}' returned rc={{ control_node_image_check.rc }}"
   when: target_host_image_check.rc != 0
 
+- name: Verify image is now present on target host1
+  shell: podman image exists {{ registry_image }}
+  register: final_image_check
+  failed_when: final_image_check.rc != 0
+  changed_when: false
+
 - name: Pull image on control node if missing
   delegate_to: localhost
   shell: podman pull {{ registry_image }}
@@ -31,16 +37,27 @@
   - control_node_image_check.rc != 0
   register: image_pull_result
 
+- debug:
+    var: role_path
+
 # 3) Save image on control node
+- name: Ensure files directory exists on control node
+  delegate_to: localhost
+  file:
+    path: "{{ role_path }}/files"
+    state: directory
+    mode: '0755'
+  when: image_pull_result == 0
+
 - name: Save image to tar
   delegate_to: localhost
-  shell: podman save {{ registry_image }} -o /tmp/{{ image_tar }}
-  when: image_pull_result == 0
+  shell: podman save {{ registry_image }} -o {{ role_path }}/files/{{ image_tar }}
+  when: image_pull_result.rc == 0
 
 # 4) Transfer tarball to remote
 - name: Copy image tar to remote
   copy:
-    src: "/tmp/{{ image_tar }}"
+    src: "{{ role_path }}/files/{{ image_tar }}"
     dest: "/tmp/{{ image_tar }}"
   when: target_host_image_check.rc != 0
 
@@ -55,4 +72,3 @@
   register: final_image_check
   failed_when: final_image_check.rc != 0
   changed_when: false
-  retries: 3
