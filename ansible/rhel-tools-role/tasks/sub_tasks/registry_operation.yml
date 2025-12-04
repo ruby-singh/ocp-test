@@ -5,6 +5,10 @@
   failed_when: false
   changed_when: false
 
+- name: Debug target host image check result
+  debug:
+    msg: "Target host 'podman image exists {{ registry_image }}' returned rc={{ target_host_image_check.rc }}"
+
 # 2) If missing on target host, ensure it's available locally
 - name: Check if image exists on control node (localhost)
   delegate_to: localhost
@@ -14,24 +18,30 @@
   changed_when: false
   when: target_host_image_check.rc != 0
 
+- name: Debug control node image check result
+  debug:
+    msg: "Control node 'podman image exists {{ registry_image }}' returned rc={{ control_node_image_check.rc }}"
+  when: target_host_image_check.rc != 0
+
 - name: Pull image on control node if missing
   delegate_to: localhost
   shell: podman pull {{ registry_image }}
   when:
   - target_host_image_check.rc != 0
   - control_node_image_check.rc != 0
+  register: image_pull_result
 
 # 3) Save image on control node
 - name: Save image to tar
   delegate_to: localhost
   shell: podman save {{ registry_image }} -o /tmp/{{ image_tar }}
-  when: target_host_image_check.rc != 0
+  when: image_pull_result == 0
 
 # 4) Transfer tarball to remote
 - name: Copy image tar to remote
   copy:
     src: "/tmp/{{ image_tar }}"
-    dest: "/tmp/{{ remote_image_tar }}"
+    dest: "/tmp/{{ image_tar }}"
   when: target_host_image_check.rc != 0
 
 # 5) Load image on remote host

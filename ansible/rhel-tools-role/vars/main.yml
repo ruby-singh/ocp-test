@@ -48,7 +48,7 @@ registry_image_dest_path: "/tmp/nginx-image.tar"
 registry_image_name: "docker.io/library/nginx:latest"
 
 registry_image: "docker.io/library/registry:latest"
-remote_image_tar: "/tmp/registry-image.tar"
+image_tar: "registry-image.tar"
 
 # List of binaries to verify
 binaries_to_check:
