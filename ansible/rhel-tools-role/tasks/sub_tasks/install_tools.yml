@@ -37,7 +37,7 @@
   # ------------------------------
   - name: Install Skopeo RPM offline
     shell: |
-      sudo rpm -ivh --nodeps {{ remote_install_temp }}/skopeo/skopeo*.rpm
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/skopeo/skopeo.rpm
     args:
       warn: false
     when: skopeo_download.changed
@@ -93,7 +93,7 @@
   # ------------------------------
   - name: Install git RPM offline
     shell: |
-      sudo rpm -ivh --nodeps {{ remote_install_temp }}/git/git*.rpm
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/git/git.rpm
     args:
       warn: false
     when: git_download.changed
@@ -103,7 +103,7 @@
   # ------------------------------
   - name: Install wget RPM offline
     shell: |
-      sudo rpm -ivh --nodeps {{ remote_install_temp }}/wget/wget*.rpm
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/wget/wget.rpm
     args:
       warn: false
     when: wget_download.changed
@@ -113,7 +113,7 @@
   # ------------------------------
   - name: Install curl RPM offline
     shell: |
-      sudo rpm -ivh --nodeps {{ remote_install_temp }}/curl/curl*.rpm
+      sudo rpm -ivh --nodeps {{ remote_install_temp }}/curl/curl.rpm
     args:
       warn: false
     when: curl_download.changed
